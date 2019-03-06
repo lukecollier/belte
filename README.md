@@ -3,7 +3,7 @@ strap your svelte components onto plain old html
 
 ## Q/A
 - Q: Why?
-  A: Insprimed by the [JAM stack](https://jamstack.org/) I wanted to get all the benefits of a statically generated page with all the atomic, lean and interactivity of a javascript framework.
+  A: Insprired by the [JAM stack](https://jamstack.org/) I wanted to get all the benefits of a statically generated page with all the atomic, lean and interactivity of a javascript framework.
 - Q: Why svelte?
   A: Svelte is a good place to start as it's easy to initialize and segregates itself into small bundles very nicely.
 - Q: React soon?
