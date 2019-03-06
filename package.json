@@ -1,0 +1,10 @@
+{
+  "name": "belte",
+  "version": "0.0.1",
+  "description": "strap on your components",
+  "main": "index.js",
+  "repository": "https://github.com/lukecollier/belte.git",
+  "author": "Luke Collier <contact@lukecollier.dev>",
+  "license": "MIT",
+  "private": false
+}
