@@ -21,7 +21,7 @@ strap your svelte components onto plain old html
 
 ```html
 <head>
-  <script src="output.js">
+  <script src="output.js"/>
 </head>
 <!-- ... -->
 <div id="belte-greeting-0000"></div> <!-- populate with the ssr default fields -->
