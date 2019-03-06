@@ -23,14 +23,15 @@ strap your svelte components onto plain old html
 <head>
   <script src="output.js">
 </head>
-...
+<!-- ... -->
 <div id="belte-greeting-0000"></div> <!-- populate with the ssr default fields -->
-```
-```javascript
-var beltegreeting0000 = 
+<!-- ... -->
+<script>
+  var beltegreeting0000 = 
   new Greeting({
     target: document.getElementById("belte-greeting-0000"),
     data: { name: "luke", slot: "Hello, " }}
+</script>
 ```
 
 output.js contains example of svelte compiled greeting
