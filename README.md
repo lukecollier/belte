@@ -27,7 +27,7 @@ The answer is yes!
 var beltegreeting0000 = 
   new Greeting({
     target: document.getElementById("belte-greeting-0000"),
-    data: { name: "yo", slot: "Hello, " }
+    data: { name: "luke", slot: "Hello, " }
     }
 ```
 
