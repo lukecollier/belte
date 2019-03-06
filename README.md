@@ -1,4 +1,4 @@
-# belte /belt/
+# belte [/belt/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
 ## Is this for me?
