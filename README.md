@@ -49,3 +49,10 @@ output.js contains example of svelte compiled greeting
 ## Benefits over server side rendering
 - Portability, static files can be moved across CDN's relatively painlessly (for cost) allowing changing provider simply.
 - Fast, cdn's employ strategies to improve transfer rates which reduces wall time to milliseconds
+
+## Desired Developer Experience
+1. Choose a backend (Svelte, React, Vue, Any SSRerable front end framework)
+2. Add this via build tool integration (Rollup, Gulp, Webpack, Brunch)
+3. build your templates and components
+4. ???
+5. Profit with lightning fast bare bones development!
