@@ -8,24 +8,24 @@ The answer is yes!
 
 ## Example
 
-html'''
+```html
 <greeting name="luke">
   Hello, 
 </greeting>
-'''
+```
 
 &darr; &darr; &darr;
 
-html'''
+```html
 <div id="belte-greeting-0000"></div>
-'''
-'''javscript
+```
+```javascript
 var beltegreeting0000 = 
   new Greeting({
     target: document.getElementById("belte-greeting-0000"),
     data: { name: "yo", slot: "Hello, " }
     }
-'''
+```
 
 ## Quickstart
 
