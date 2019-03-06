@@ -21,7 +21,7 @@ The answer is yes!
   <script src="output.js">
 </head>
 ...
-<div id="belte-greeting-0000"></div>
+<div id="belte-greeting-0000"></div> <!-- populate with the ssr default fields -->
 ```
 ```javascript
 var beltegreeting0000 = 
