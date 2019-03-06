@@ -6,6 +6,27 @@ Svelte is great at creating atomic components, but wouldn't it be cool to automa
 
 The answer is yes!
 
+## Example
+
+html'''
+<greeting name="luke">
+  Hello, 
+</greeting>
+'''
+
+&darr; &darr; &darr;
+
+html'''
+<div id="belte-greeting-0000"></div>
+'''
+'''javscript
+var beltegreeting0000 = 
+  new Greeting({
+    target: document.getElementById("belte-greeting-0000"),
+    data: { name: "yo", slot: "Hello, " }
+    }
+'''
+
 ## Quickstart
 
 ## Guide
