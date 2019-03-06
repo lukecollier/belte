@@ -56,3 +56,6 @@ output.js contains example of svelte compiled greeting
 3. build your templates and components
 4. ???
 5. Profit with lightning fast bare bones development!
+
+## Author
+Luke Collier [Website](www.lukecollier.dev) [Email](mailto:contact@lukecollier.dev)
