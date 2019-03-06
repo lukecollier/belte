@@ -2,7 +2,7 @@
 strap your svelte components onto plain old html
 
 ## Is this for me?
-Svelte is great at creating atomic components, but wouldn't it be cool to automatically go through a document and populate all your components on?
+Svelte is great at creating atomic components, but wouldn't it be cool to automatically go through a document and populate all your components in a optimized bundle for your page?
 
 The answer is yes!
 
@@ -17,6 +17,10 @@ The answer is yes!
 &darr; &darr; &darr;
 
 ```html
+<head>
+  <script src="output.js">
+</head>
+...
 <div id="belte-greeting-0000"></div>
 ```
 ```javascript
@@ -26,6 +30,8 @@ var beltegreeting0000 =
     data: { name: "yo", slot: "Hello, " }
     }
 ```
+
+output.js contains example of svelte compiled greeting
 
 ## Quickstart
 
