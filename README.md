@@ -1,10 +1,13 @@
 # belte [/belt/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
-## Is this for me?
-Svelte is great at creating atomic components, but wouldn't it be cool to automatically go through a document and populate all your components in a optimized bundle for your page?
-
-The answer is yes!
+## Q/A
+- Q: Why?
+  A: Insprimed by the [JAM stack](https://jamstack.org/) I wanted to get all the benefits of a statically generated page with all the atomic, lean and interactivity of a javascript framework.
+- Q: Why svelte?
+  A: Svelte is a good place to start as it's easy to initialize and segregates itself into small bundles very nicely.
+- Q: React soon?
+  A: Not soon but with a generic enough solution we could add adapters to allow for any statically buildable javascript front end library to be used.
 
 ## Example
 
