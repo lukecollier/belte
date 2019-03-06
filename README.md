@@ -30,8 +30,7 @@ strap your svelte components onto plain old html
 var beltegreeting0000 = 
   new Greeting({
     target: document.getElementById("belte-greeting-0000"),
-    data: { name: "luke", slot: "Hello, " }
-    }
+    data: { name: "luke", slot: "Hello, " }}
 ```
 
 output.js contains example of svelte compiled greeting
@@ -45,3 +44,7 @@ output.js contains example of svelte compiled greeting
 - [ ] core
 - [ ] quickstart
 - [ ] write guide
+
+## Benefits over server side rendering
+- Portability, static files can be moved across CDN's relatively painlessly (for cost) allowing changing provider simply.
+- Fast, cdn's employ strategies to improve transfer rates which reduces wall time to milliseconds
