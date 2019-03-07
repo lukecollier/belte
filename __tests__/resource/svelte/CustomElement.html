@@ -1,0 +1,21 @@
+<script>
+	export default {
+		components: { Plain: './PlainElement.html' },
+    data() {
+			return {
+				name: "Jeff" 
+			};
+		}
+	};
+</script>
+
+<div>
+  <Plain/>
+  <span class="caption">{name}</span>
+</div>
+
+<style>
+.caption {
+  color: grey;
+}
+</style>

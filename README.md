@@ -1,4 +1,4 @@
-# belte [/belt/](https://dictionary.cambridge.org/pronunciation/english/belt)
+# belt [/belt-ah/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
 ## Q/A
@@ -41,10 +41,22 @@ output.js contains example of svelte compiled greeting
 ## Guide
 
 ## Roadmap
+### 1.0
+completing the core library
+- [ ] investigate licensing
 - [ ] proof of concept
-- [ ] core
 - [ ] quickstart
 - [ ] write guide
+- [ ] sourcemaps and other dev goodies 
+
+### Future Work
+Vague ideas for nice-to-haves.
+- [ ] loaders test kit
+- [ ] support multiple frameworks
+- [ ] integrate with static site generator (Hugo, Zola, Jekyll)
+- [ ] enable multiple frameworks and versions
+- [ ] enable efficient component optimisations using a dependency graph (belt sander)
+- [ ] work with windows
 
 ## Benefits over server side rendering
 - Portability, static files can be moved across CDN's relatively painlessly (for cost) allowing changing provider simply.
@@ -57,5 +69,27 @@ output.js contains example of svelte compiled greeting
 4. ???
 5. Profit with lightning fast bare bones development!
 
+## Making your own Loader /lo-dah/
+Belte loaders are the core to making strapping on components from different libraries
+
+requirements:
+loaders require these to function as intended
+- [x] A way to render components (Server Side Rendering)
+- [x] A way to hydrate components
+- [ ] (optional) Extract styles to sheet 
+- [ ] (optional) A way to reference header values 
+
+Loaders work with 3 components,
+- Head, resolves everything that goes into the head
+- Inline, replaced in line where custom elements are found
+- end, loaded at the end of the java file
+
+| framework  | repo |
+| ------------- | ------------- |
+| [svelte v2](https://svelte.technology/)  | this repo |
+
+#### Testing your loader
+for your loader to be accepted you'll need to use the test suite to ensure compliance with custom-elements.
+
 ## Author
-Luke Collier [Website](https://www.lukecollier.dev) [Email](mailto:contact@lukecollier.dev)
+Luke Collier ([website](https://www.lukecollier.dev) [email](mailto:contact@lukecollier.dev))
