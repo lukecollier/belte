@@ -3,7 +3,8 @@
 		components: { Plain: './PlainElement.html' },
     data() {
 			return {
-				name: "Jeff" 
+				name: "Jeff",
+        count: 0
 			};
 		}
 	};
@@ -12,6 +13,8 @@
 <div>
   <Plain/>
   <span class="caption">{name}</span>
+  <p>Count: {count}</p>
+  <button on:click="set({ count: count + 1 })">+1</button>
 </div>
 
 <style>

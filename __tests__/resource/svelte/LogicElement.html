@@ -7,6 +7,7 @@
 		},
 		methods: {
 			updateDate(_event) {
+        alert("hello");
 				this.set({time: new Date()});
 			}
 		},
@@ -20,7 +21,7 @@
 
 <div>
   <span>The time is: {hours}:{minutes}:{seconds}</span>
-	<button on:click="updateDate()">update</button>
+	<button on:click="updateDate(event)">update</button>
 </div>
 
 <style>

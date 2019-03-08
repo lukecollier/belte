@@ -21,7 +21,7 @@ test('compiling an document with a custom element gives replaces with element',
           <title></title>
         </head>
         <body>
-          <custom-element><custom-element/></custom-element>
+          <custom-element></logic-element>
         </body>
       </html>`
     );
