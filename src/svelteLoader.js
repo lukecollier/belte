@@ -1,38 +1,41 @@
-require('svelte/ssr/register');
-const svelte = require('svelte');
+import 'svelte/ssr/register';
+import * as svelte from 'svelte';
+
+import fs from 'fs';
+import path from 'path';
 
 const { nameFromPath, filenameFromPath } = require('./helper');
 
 const defaultConfig = {
-  src: './src', // location of components
-  el: './dist', // the target directory
+  src: './src/**', // location of components as a glob
+  target: './dist', // the target directory for the static files
 }
 
 //ssr rendered component
-const render = (src, att) => {
+export const render = (src, att, conf) => {
   const component = require(src);
   return component.render(att, {hydratable:true,css:false}).toString();
 };
 
-// js extracted 
-// additional optimization by building a dependency graph of components and ordering them by this to reduce amount of code needed depending on sveltes impl of other components
-
-const javascript = (src, att) => {
+// we can extract dependencies by exporting an es module then traversing a pasrsed ast to get all the imports, if the imported file is html it needs svelte compiling otherwise babel that bad boy
+export const javascript = (src, att, conf) => {
+  const resolveSrc = path.resolve(__dirname, src);
+  const data = fs.readFileSync(resolveSrc, 'utf8');
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: nameFromPath(src), // todo get filename and titlecase it
+    name: nameFromPath(src),
     filename: filenameFromPath(src), // todo get filename and titlecase it
-		format: 'iife',
+		format: 'es',
 	};
-	const { js } = svelte.compile(src, options, att);
-	return js;
+	const compiled = svelte.compile(data, options, att);
+	return compiled.js.code;
 };
 
 // todo sourcemaps when in development
 // todo only currently compiles the components css, this is useful as we can optimize into one style sheet per page without duplication, this could use a dependency graph to figure out what components have already been included in the style sheet, exciting. Not mvp due to atomizer being a good intemediate solution
-const css = (src, att) => {
+export const css = (src, att, conf) => {
   const component = require(src);
 	const options = {
 		generate: 'ssr',
@@ -45,7 +48,7 @@ const css = (src, att) => {
   return component.render(att, options).css;
 };
 
-const loader = (src, att) => {
+export const loader = (src, att) => {
   return {
     head: css(src, att), 
     inline: render(src, att),
@@ -53,9 +56,4 @@ const loader = (src, att) => {
   };
 };
 
-module.exports = { 
-  render: render,
-  javascript: javascript,
-  css: css,
-  loader: loader
-};
+export default loader;

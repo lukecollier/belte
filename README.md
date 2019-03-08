@@ -7,7 +7,7 @@ strap your svelte components onto plain old html
 - Q: Why svelte?
   A: Svelte is a good place to start as it's easy to initialize and segregates itself into small bundles very nicely.
 - Q: React soon?
-  A: Not soon but with a generic enough solution we could add adapters to allow for any statically buildable javascript front end library to be used.
+  A: Not soon but with a generic enough solution we could add adapters to allow for any statically buildable javascript front end library to be used!
 
 ## Example
 
@@ -41,26 +41,40 @@ output.js contains example of svelte compiled greeting
 ## Guide
 
 ## Roadmap
-### 1.0
+### 0.0 Proof of Concept
+- [x] inline components from a template hmtl file using custom-element syntax (almost)
+- [x] resolve svelte components
+- [x] namespace id's
+- [ ] recursive component find 
+- [ ] resolve component dependencies 
+- [ ] unique id's per page belte 
+- [ ] allow for custom options for loaders
+- [ ] allow multiple loaders
+- [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
+- [ ] report errors and warning effectively
+- [ ] test kit for loading components
+
+### 1.0 Stable Api
 completing the core library
 - [ ] investigate licensing
-- [ ] proof of concept
 - [ ] quickstart
 - [ ] write guide
 - [ ] sourcemaps and other dev goodies 
+- [ ] optimize
 
 ### Future Work
 Vague ideas for nice-to-haves.
-- [ ] loaders test kit
 - [ ] support multiple frameworks
 - [ ] integrate with static site generator (Hugo, Zola, Jekyll)
 - [ ] enable multiple frameworks and versions
-- [ ] enable efficient component optimisations using a dependency graph (belt sander)
+- [ ] internal library called belt sander for resolving dependencies efficiently
 - [ ] work with windows
+- [ ] switch to reason or typescript
 
 ## Benefits over server side rendering
-- Portability, static files can be moved across CDN's relatively painlessly (for cost) allowing changing provider simply.
+- Portability, static files can be moved across CDN's relatively painlessly (for cost) allowing changing provider simply
 - Fast, cdn's employ strategies to improve transfer rates which reduces wall time to milliseconds
+- SEO, a statcally served page will provide better seo for crawlers specifically ones that cannot execute javascript
 
 ## Desired Developer Experience
 1. Choose a backend (Svelte, React, Vue, Any SSRerable front end framework)
@@ -75,7 +89,7 @@ Belte loaders are the core to making strapping on components from different libr
 requirements:
 loaders require these to function as intended
 - [x] A way to render components (Server Side Rendering)
-- [x] A way to hydrate components
+- [x] A way to hydrate components inline or otherwise
 - [ ] (optional) Extract styles to sheet 
 - [ ] (optional) A way to reference header values 
 

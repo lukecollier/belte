@@ -1,32 +1,26 @@
-const stripExtension = (filename) => {
+export const stripExtension = (filename) => {
   return filename.substring(0, filename.indexOf(".")); 
 };
 
-const filenameFromPath = (path) => {
+export const filenameFromPath = (path) => {
   return path.substring(path.lastIndexOf('/')+1, path.length);
 };
 
-const nameFromPath = (path) => {
+export const nameFromPath = (path) => {
   const filename = filenameFromPath(path);
   return stripExtension(filename);
 };
 
-const hyphenCaseToTitleCase = (str) => {
+export const hyphenCaseToTitleCase = (str) => {
+  const lowStr = str.toLowerCase();
   var result = [];
   var lastPos = -1;
-  for(var currPos=0; currPos<str.length;currPos++) {
+  for(var currPos=0; currPos < lowStr.length; currPos++) {
     if (str[currPos] === '-') {
-      result.push(str.substring(lastPos+1, currPos));
+      result.push(lowStr.substring(lastPos + 1, currPos));
       lastPos = currPos;
     }
   }
-  result.push(str.substring(lastPos+1, str.length));
-  return result.map((str)=>str.charAt(0).toUpperCase() + str.slice(1)).join("");
-};
-
-module.exports = {
-  stripExtension: stripExtension,
-  filenameFromPath: filenameFromPath,
-  nameFromPath: nameFromPath,
-  hyphenCaseToTitleCase: hyphenCaseToTitleCase
+  result.push(lowStr.substring(lastPos+1, lowStr.length));
+  return result.map((lowStr)=>lowStr.charAt(0).toUpperCase() + lowStr.slice(1)).join("");
 };
