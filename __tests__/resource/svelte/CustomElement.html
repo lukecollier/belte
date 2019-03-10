@@ -1,18 +1,22 @@
 <script>
 	export default {
-		components: { PlainElement: './PlainElement.html', LogicElement: './LogicElement.html' },
+		components: { Plain: './PlainElement.html', Logic: './LogicElement.html' },
     data() {
 			return {
 				name: "Jeff", 
         count: 0
 			};
+		},
+    oncreate() {
+      const { count } = this.get();
+      this.set({count: parseInt(count)});
 		}
 	};
 </script>
 
 <div>
-  <PlainElement/>
-  <LogicElement/>
+  <Plain/>
+  <Logic/>
   <span class="caption">{name}</span>
   <p>Count: {count}</p>
   <button on:click="set({ count: count + 1 })">+1</button>

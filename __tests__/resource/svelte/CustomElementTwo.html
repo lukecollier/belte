@@ -1,0 +1,15 @@
+<script>
+	export default {
+		data() {
+			return {
+				age: 20 
+			};
+		}
+	};
+</script>
+
+<div>
+  <p>Enter your age:</p>
+  <input on:change="this.set({age: 50})">
+  <span>{age}</span>
+</div>

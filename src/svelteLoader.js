@@ -4,39 +4,19 @@ import * as svelte from 'svelte';
 import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
+import Hashids from 'hashids';
 
 import fs from 'fs';
 import path from 'path';
 
 const { nameFromPath, filenameFromPath } = require('./helper');
+import { encodeStr } from './encoding';
 
-/**
- * A dependency tree object.
- * @typedef {Object} Dependencies
- * @property {Array(Dependencies)} Downstream - Downstream dependenices.
- * @property {String} filePath - File path location for dependency.
- */
-
-/**
- * Config options available
- * @typedef {Object} Config
- * @property {String} src - Source files glob.
- * @property {String} target - Path to location.
- */
-
-//ssr rendered component
-export const render = (src, att) => {
+export const renderComponent = (src, att) => {
   const component = require(src);
   return component.render(att, {hydratable:true,css:false}).toString();
 };
 
-/**
- * Get's a depdency tree of components and javascript modules.
- * @function dependencies
- * @param {string} data - Calculates a dependency tree from string.
- * @param {string} filePath - Svelte file to calculate for.
- * @returns {Set} a list of dependencies
- */
 const dependencies = (data, filePath) => {
   var deps = new Set();
   const dir = path.dirname(filePath);
@@ -54,69 +34,62 @@ const dependencies = (data, filePath) => {
     ImportDeclaration: function(p) {
       const valuePath =  p.node.source.value.toString();
       if (valuePath.endsWith('.html')) {
-        // we need to change specifiers to be uniquely generated id's for each depdendent bundle
-        console.log(p.node.specifiers[0].local.name);
         const src = path.resolve(dir, valuePath);
         const compData = fs.readFileSync(src, 'utf8');
-        dependencies(compData, src).forEach(dep => deps.add(dep));
+        dependencies(compData, src).forEach((srcPath, alias) => { 
+          deps.add(srcPath);
+        });
+        deps.add(valuePath);
       }    
-      deps.add(valuePath);
     }
   });
   return deps;
 }
 
-export const javascript = (src, att) => {
-  const resolveSrc = path.resolve(__dirname, src);
-  const data = fs.readFileSync(resolveSrc, 'utf8');
+export const compileClient = (src, att) => {
+  const data = fs.readFileSync(src, 'utf8');
+  const dir = path.dirname(src);
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: nameFromPath(src),
+    name: encodeStr(src),
     filename: filenameFromPath(src),
 		format: 'iife',
+    globals: (relPath) => {
+      const resolved = path.resolve(dir, relPath);
+      return encodeStr(resolved);
+    }
 	};
 	const compiled = svelte.compile(data, options, att);
 	return compiled.js.code;
 };
 
-// GONNA NEED BIGGA GUN, legit though we need to change the 
-// todos
-// - *investigate preprocessors on main components*
-// - figure our generating unique id's for import alias's
 export const resolveDependencies = (src) => {
-  const resolveSrc = path.resolve(__dirname, src);
-  const data = fs.readFileSync(resolveSrc, 'utf8');
+  const data = fs.readFileSync(src, 'utf8');
   var result = [];
-  const deps = dependencies(data, resolveSrc)
-    .forEach(relativePath => {
-      const dir = path.dirname(resolveSrc);
-      const resolvedPath = path.resolve(dir, relativePath);
-      result.push(javascript(resolvedPath, {}));
-    });
+  const deps = dependencies(data, src);
+  const dir = path.dirname(src);
+  for (const key of deps.keys()) {
+    const resolvedPath = path.resolve(dir, key);
+    result.push(compileClient(resolvedPath, {}));
+  };
   return result; 
 }
 
+const constructor = (src, params) => 
+  params.map(param => `
+    new ${encodeStr(src)}({
+    target:document.getElementById('${param.id}'),
+    hydrate:true,data:${JSON.stringify(param.attr)}}
+  );`).join('')
+  
 
-export const css = (src, att) => {
-  const component = require(src);
-	const options = {
-		generate: 'ssr',
-		css: true,	
-		hydratable: false,
-    name: nameFromPath(src), // todo get filename and titlecase it
-    filename: filenameFromPath(src), // todo get filename and titlecase it
-		format: 'iife',
-	};
-  return component.render(att, options).css;
-};
-
-export const loader = (src, att) => {
+export const loader = (src, att, params) => {
   return {
-    head: [css(src, att), ...resolveDependencies(src)], 
-    inline: render(src, att),
-    end: javascript(src, att)
+    head: [...resolveDependencies(src), compileClient(src, att)], 
+    inline: renderComponent(src, att),
+    end: constructor(src, params)
   };
 };
 

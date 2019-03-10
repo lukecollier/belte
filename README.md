@@ -105,5 +105,12 @@ Loaders work with 3 components,
 #### Testing your loader
 for your loader to be accepted you'll need to use the test suite to ensure compliance with custom-elements.
 
+## Gotchas
+- When passing a number for example ```html <custom-element attr=1/>``` it will be converted to a string, we can fix this by parsing the attribute on the element. For example in svelte ```javascript 
+    oncreate() {
+      const { count } = this.get();
+      this.set({count: parseInt(count)});
+		}``` will solve the problem.  
+
 ## Author
 Luke Collier ([website](https://www.lukecollier.dev) [email](mailto:contact@lukecollier.dev))

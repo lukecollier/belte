@@ -25,6 +25,7 @@
     "@babel/traverse": "^7.3.4",
     "@babel/types": "^7.3.4",
     "cheerio": "^1.0.0-rc.2",
+    "hashids": "^1.2.2",
     "rollup": "^1.4.1",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-commonjs": "^9.2.1",
