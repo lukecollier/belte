@@ -19,6 +19,12 @@ const createEndScript = (name, loader, ids) => {
   return `${end}${ids.map(id => constructorScript(name, id)).join('')}`; 
 };
 
+const createHead = (name, loader) => {
+  const dir = `../__tests__/resource/svelte/${name}.html`;
+  const { head } = loader(dir, {});
+  return head.map(script => `<script>${script}</script>`).join("\n");
+}
+
 const constructorScript = (name, id, data = {}) => 
   `new ${name}({target:document.getElementById('${id}'),hydrate:true,data:{}});`
 
@@ -45,6 +51,7 @@ export const compile = (html, loader) => {
       $(node).replaceWith(el);
     });
   elRefs.forEach((ids, name, map) => {
+      $('head').append($(createHead(name,loader)));
       $('body').append($(`<script>${createEndScript(name, loader, ids)}</script>`))
   });
   

@@ -1,5 +1,6 @@
 <script>
 	export default {
+		components: { PlainElement: './PlainElement.html' },
 		data() {
 			return {
 				time: new Date()
@@ -19,6 +20,7 @@
 </script>
 
 <div>
+  <PlainElement/>
   <span>The time is: {hours}:{minutes}:{seconds}</span>
 	<button on:click="updateDate(event)">update</button>
 </div>

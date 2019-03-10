@@ -3,7 +3,7 @@ export const stripExtension = (filename) => {
 };
 
 export const filenameFromPath = (path) => {
-  return path.substring(path.lastIndexOf('/')+1, path.length);
+  return path.substring(path.lastIndexOf('/')+ 1, path.length);
 };
 
 export const nameFromPath = (path) => {

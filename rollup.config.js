@@ -14,7 +14,7 @@ export default {
     json(),
     babel({
       exclude: 'node_modules/**',
-      presets: ['@babel/env'],
+      presets: [['@babel/env', { modules: false }]],
     })
   ],		
   output: [

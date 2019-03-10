@@ -14,15 +14,16 @@
     "test": "ava",
     "test:watch": "ava -w"
   },
-	"ava": {
-		"require": [
-			"esm"
-		]
-	},
+  "ava": {
+    "require": [
+      "esm"
+    ]
+  },
   "dependencies": {
     "@babel/parser": "^7.3.4",
     "@babel/preset-env": "^7.3.4",
     "@babel/traverse": "^7.3.4",
+    "@babel/types": "^7.3.4",
     "cheerio": "^1.0.0-rc.2",
     "rollup": "^1.4.1",
     "rollup-plugin-babel": "^4.3.2",

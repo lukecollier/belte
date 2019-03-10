@@ -1,6 +1,6 @@
 <script>
 	export default {
-		components: { Plain: './PlainElement.html' },
+		components: { PlainElement: './PlainElement.html', LogicElement: './LogicElement.html' },
     data() {
 			return {
 				name: "Jeff", 
@@ -11,7 +11,8 @@
 </script>
 
 <div>
-  <Plain/>
+  <PlainElement/>
+  <LogicElement/>
   <span class="caption">{name}</span>
   <p>Count: {count}</p>
   <button on:click="set({ count: count + 1 })">+1</button>
