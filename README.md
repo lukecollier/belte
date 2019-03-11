@@ -1,4 +1,4 @@
-# belt [/belt-ah/](https://dictionary.cambridge.org/pronunciation/english/belt)
+# belte [/belt-ah/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
 ## Q/A
