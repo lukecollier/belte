@@ -53,6 +53,7 @@ output.js contains example of svelte compiled greeting
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components
+- [ ] support ```html <this/>``` syntax
 
 ### 1.0 Stable Api
 completing the core library
@@ -61,6 +62,7 @@ completing the core library
 - [ ] write guide
 - [ ] sourcemaps and other dev goodies 
 - [ ] optimize
+- [ ] slot elements
 
 ### Future Work
 Vague ideas for nice-to-haves.

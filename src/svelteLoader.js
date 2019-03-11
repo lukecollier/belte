@@ -67,12 +67,12 @@ export const compileClient = (src, att) => {
 
 export const resolveDependencies = (src) => {
   const data = fs.readFileSync(src, 'utf8');
-  var result = [];
+  var result = new Map();
   const deps = dependencies(data, src);
   const dir = path.dirname(src);
   for (const key of deps.keys()) {
     const resolvedPath = path.resolve(dir, key);
-    result.push(compileClient(resolvedPath, {}));
+    result.set(encodeStr(resolvedPath), compileClient(resolvedPath, {}));
   };
   return result; 
 }
@@ -86,8 +86,10 @@ const constructor = (src, params) =>
   
 
 export const loader = (src, att, params) => {
+  var head = resolveDependencies(src);
+  head.set(encodeStr(src), compileClient(src, att));
   return {
-    head: [...resolveDependencies(src), compileClient(src, att)], 
+    head: head, 
     inline: renderComponent(src, att),
     end: constructor(src, params)
   };

@@ -20,10 +20,18 @@ const createEndScript = (name, loader, params) => {
   return end; 
 };
 
-const createHead = (name, loader) => {
+const createHead = (name, loader, params) => {
   const src = path.resolve(__dirname, `../__tests__/resource/svelte/${name}.html`);
   const { head } = loader(src, {}, []);
-  return head.map(script => `<script>${script}</script>`).join("\n");
+  var result = new Set();
+  for (const entry of head.entries()) {
+    write(`${entry[0]}.js`, entry[1]); 
+    result.add(`<script src="${entry[0]}.js" defer="true"/>`)
+  }
+  const compInitScript = createEndScript(name,loader,params);
+  write(`${encodeStr(compInitScript)}init.js`, compInitScript); 
+  const initHead = `<script src="${encodeStr(compInitScript)}init.js" defer="true"/>`;
+  return [...result.values(), initHead];
 }
 
 // Has to be a better way to do this~
@@ -44,9 +52,25 @@ const isCustomElement = (node) => {
   return node.type === 'tag' && !HTML5_ELEMENT_NAMES.includes(node.name);
 }
 
+const write = (filename, data) => {
+  const dir = `${process.env.PWD}/build`
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+
+  fs.writeFile(`${dir}/${filename}`, data, function(err, data) {
+    if (err) throw `Error writing ${filename}`;
+    return filename;
+  });
+
+  return filename;
+}
+
 export const compile = (html, loader) => {
-  const $ = cheerio.load(html, { normalizeWhitespace: true });
+  const $ = cheerio.load(html, { 
+    normalizeWhitespace: true, 
+    recognizeSelfClosing: true 
+  });
   var elRefs = new Map();
+
   $('body').children().filter((i, node) => isCustomElement(node)).each((i, node) => {
     const name = hyphenCaseToTitleCase(node.name);
     const el = createInlineHtml(name, loader, $, node.attribs);
@@ -61,13 +85,10 @@ export const compile = (html, loader) => {
   });
 
   elRefs.forEach((params, name, map) => {
-      $('head').append($(createHead(name,loader)));
-      $('body').append($(`<script>${createEndScript(name, loader, params)}</script>`))
+    createHead(name,loader, params).forEach(script=>$('head').append($(script)));
   });
   
-  fs.writeFile(`${__dirname}/index.html`, $.html(), function(err, data) {
-    if (err) console.log(err);
-  });
+  write('index.html', $.html());
 
   return $.html();
 };
