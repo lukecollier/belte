@@ -3,12 +3,12 @@ const { compile, defaultCompile } = require('../src/core.js');
 
 const emptyDocument = "<html><head></head><body></body></html>";
 
-test.skip('compiling an empty string returns empty string', t => {
+test('compiling an empty string returns empty string', t => {
   const result = defaultCompile("");
 	t.is(result, emptyDocument)
 });
 
-test.skip('compiling an empty document returns an empty document', t => {
+test('compiling an empty document returns an empty document', t => {
   const result = defaultCompile(emptyDocument);
 	t.is(result, emptyDocument);
 });

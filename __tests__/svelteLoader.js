@@ -3,7 +3,7 @@ const {renderComponent, compileClient, css} = require('../src/svelteLoader.js');
 
 const resource = (filename) => `${__dirname}/resource/${filename}`;
 
-test.skip('test can resolve rendered element that contains logic', t => {
+test('test can resolve rendered element that contains logic', t => {
 	const constantDate = new Date();
 	constantDate.setMinutes(11);
 	constantDate.setHours(11);

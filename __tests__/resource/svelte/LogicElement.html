@@ -21,7 +21,7 @@
 
 <div>
   <Plain/>
-  <span>The time is: {hours}:{minutes}:{seconds}</span>
+  <span>The time is: <time datetime="{hours}:{minutes}:{seconds}">{hours}:{minutes}:{seconds}</time></span>
 	<button on:click="updateDate(event)">update</button>
 </div>
 

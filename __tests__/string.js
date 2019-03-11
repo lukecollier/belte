@@ -3,7 +3,7 @@ const {
   hyphenCaseToTitleCase, 
   stripExtension,
   filenameFromPath,
-  nameFromPath } = require('../src/helper.js');
+  nameFromPath } = require('../src/string.js');
 
 test('convert hyphen case to title case', t => {
   const result = hyphenCaseToTitleCase('test-case');

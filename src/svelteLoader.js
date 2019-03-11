@@ -9,7 +9,7 @@ import Hashids from 'hashids';
 import fs from 'fs';
 import path from 'path';
 
-const { nameFromPath, filenameFromPath } = require('./helper');
+const { nameFromPath, filenameFromPath } = require('./string');
 import { encodeStr } from './encoding';
 
 export const renderComponent = (src, att) => {

@@ -15,7 +15,7 @@ export const hyphenCaseToTitleCase = (str) => {
   const lowStr = str.toLowerCase();
   var result = [];
   var lastPos = -1;
-  for(var currPos=0; currPos < lowStr.length; currPos++) {
+  for(var currPos = 0; currPos < lowStr.length; currPos++) {
     if (str[currPos] === '-') {
       result.push(lowStr.substring(lastPos + 1, currPos));
       lastPos = currPos;
