@@ -52,7 +52,7 @@ output.js contains example of svelte compiled greeting
 - [ ] allow multiple loaders
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
-- [-] test kit for loading components
+- [ ] test kit for loading components
 
 ### 1.0 Stable Api
 completing the core library
