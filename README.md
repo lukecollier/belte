@@ -46,13 +46,13 @@ output.js contains example of svelte compiled greeting
 - [x] resolve svelte components
 - [x] namespace id's
 - [ ] recursive component find 
-- [ ] resolve component dependencies 
-- [ ] unique id's per page belte 
+- [x] resolve component dependencies 
+- [x] unique id's per page belte 
 - [ ] allow for custom options for loaders
 - [ ] allow multiple loaders
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
-- [ ] test kit for loading components
+- [-] test kit for loading components
 
 ### 1.0 Stable Api
 completing the core library
