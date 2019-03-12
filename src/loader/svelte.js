@@ -9,8 +9,8 @@ import Hashids from 'hashids';
 import fs from 'fs';
 import path from 'path';
 
-import { nameFromPath, filenameFromPath } from '../string';
-import { encodeFromPath } from '../encoding';
+import { nameFromPath, filenameFromPath } from '../string.js';
+import { encodeFromPath } from '../encoding.js';
 
 const dependencies = (data, filePath) => {
   var deps = new Set();
@@ -48,12 +48,13 @@ export const compileClient = (src) => {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: encodeFromPath(src),
+    name: encodeFromPath(compData),
     filename: filenameFromPath(src),
 		format: 'iife',
     globals: (relPath) => {
       const resolved = path.resolve(dir, relPath);
-      return encodeFromPath(resolved);
+      const data = fs.readFileSync(resolved, 'utf8');
+      return encodeFromPath(data);
     }
 	};
 	const compiled = svelte.compile(compData, options);
@@ -89,17 +90,18 @@ export const loader = (src, instances = [{id: '', attr: {}}]) => {
 
   const clientDepsCompiled = resolveDependencies(src);
   const clientDepsScripts = clientDepsCompiled.map(compile => compile.js);
-  const clientDepsStyles = clientDepsCompiled.map(compile => compile.css);
+  const clientDepsStyles = clientDepsCompiled.map(compile => compile.css)
+    .filter(style=>style!==null);
   const {js, css} = compileClient(src); 
 
-  const encodedSrc = encodeFromPath(src);
+  const compData = fs.readFileSync(src, 'utf8');
+  const initScript = constructor(encodeFromPath(compData), instances);  
 
-  const initScripts = constructor(encodeFromPath(src), instances);  
   return {
     hooks: hooks, // ssr projection of component to attach to
     scripts: [...clientDepsScripts, js.code], // component scripts or logic
-    initScripts: initScripts, // scripts to load components, keep in an array for resilliancey reasons
-    styles: [css.code, ...clientDepsStyles] // styling generated during component compilation
+    initScript: initScript, 
+    styles: (css.code!==null) ? [css.code, ...clientDepsStyles] : clientDepsStyles   
   };
 };
 

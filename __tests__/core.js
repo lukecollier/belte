@@ -15,7 +15,7 @@ test('compiling an empty document returns an empty document', t => {
 
 test.only('compiling an document with a custom element gives replaces with element', 
   t => {
-    const result = defaultCompile(`<html><head><title></title></head><body><custom-element name="Luke Collier" count=5 test></custom-element><logic-element></logic-element></body></html>`);
+    const result = defaultCompile(`<html><head><title></title></head><body><custom-element name="Luke Collier" count=5 test></custom-element><custom-element name="Luke Collier" count=6 test></custom-element><logic-element></logic-element></body></html>`);
 
     t.snapshot(result);
   });

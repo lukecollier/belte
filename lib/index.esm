@@ -1,19 +1,14 @@
-'use strict';
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var cheerio = _interopDefault(require('cheerio'));
-var fs = _interopDefault(require('fs'));
-var path$1 = _interopDefault(require('path'));
-require('svelte/ssr/register');
-var svelte = require('svelte');
-var parser = require('@babel/parser');
-var parser__default = _interopDefault(parser);
-var types$1 = _interopDefault(require('@babel/types'));
-var tty = _interopDefault(require('tty'));
-var util$1 = _interopDefault(require('util'));
-var os = _interopDefault(require('os'));
-var Hashids = _interopDefault(require('hashids'));
+import cheerio from 'cheerio';
+import fs from 'fs';
+import path$1 from 'path';
+import 'svelte/ssr/register';
+import { compile as compile$1 } from 'svelte';
+import parser__default, { parse as parse$2 } from '@babel/parser';
+import types$1 from '@babel/types';
+import tty from 'tty';
+import util$1 from 'util';
+import os from 'os';
+import Hashids from 'hashids';
 
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
@@ -23897,8 +23892,8 @@ var dependencies = function dependencies(data, filePath) {
     filename: filenameFromPath(filePath),
     format: 'es'
   };
-  var compiled = svelte.compile(data, options);
-  var ast = parser.parse(compiled.js.code, {
+  var compiled = compile$1(data, options);
+  var ast = parse$2(compiled.js.code, {
     sourceType: 'module'
   });
   traverse(ast, {
@@ -23934,7 +23929,7 @@ var compileClient = function compileClient(src) {
       return encodeFromPath(data);
     }
   };
-  var compiled = svelte.compile(compData, options);
+  var compiled = compile$1(compData, options);
   return compiled;
 };
 var resolveDependencies = function resolveDependencies(src) {
@@ -24103,4 +24098,4 @@ var defaultCompile = function defaultCompile(html) {
   return compile(html, loader);
 };
 
-module.exports = defaultCompile;
+export default defaultCompile;

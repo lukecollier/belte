@@ -45,15 +45,15 @@ output.js contains example of svelte compiled greeting
 - [x] inline components from a template hmtl file using custom-element syntax (almost)
 - [x] resolve svelte components
 - [x] namespace id's
-- [ ] recursive component find 
+- [x] find nested components
 - [x] resolve component dependencies 
 - [x] unique id's per page belte 
-- [ ] allow for custom options for loaders
+- [ ] have options for belt
 - [ ] allow multiple loaders
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components
-- [ ] support ```html <this/>``` syntax
+- [ ] support self closing tags e.g ```html <thing/>```
 
 ### 1.0 Stable Api
 completing the core library

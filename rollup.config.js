@@ -7,7 +7,19 @@ let pkg = require('./package.json')
 
 export default {
   input: './src/index.js',
-  external: [ 'cheerio', 'svelte', 'svelte/ssr/register' ],
+  external: [ 
+    'cheerio', 
+    'svelte', 
+    'svelte/ssr/register', 
+    'hashids', 
+    '@babel/parser', 
+    '@babel/types',
+    'fs', 
+    'path', 
+    'tty', 
+    'util', 
+    'os' 
+  ],
   plugins: [
     resolve(),
     commonjs(),
