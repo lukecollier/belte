@@ -53,6 +53,7 @@ output.js contains example of svelte compiled greeting
 
 ### 1.0 Stablilizing Api
 completing the core working well with needed features 
+- [ ] debug options, e.g adding component names before hash versioning
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components

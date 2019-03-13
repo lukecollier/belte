@@ -1,29 +1,26 @@
 import Hashids from 'hashids';
 
-import { nameFromPath } from './string.js';
+const hashAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-export const encodeStr = (str) => {
-  const hashids = new Hashids('salt-me', 8, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-  const sumCharacters = [...str]
-    .map((_, i)=>str.charCodeAt(i))
-    .reduce((accumulator, currentValue) => accumulator + currentValue);
-  return hashids.encode(sumCharacters);
+// uses the java hashCode function to generate string number, need's investigating the entropy 
+const hashCode = (s) => {
+  var h = 0, l = s.length, i = 0;
+  if ( l > 0 )
+    while (i < l)
+      h = (h << 5) - h + s.charCodeAt(i++) | 0;
+  return h;
+};
+
+const positiveHashCode = (s) => {
+  return hashCode(s) & 0xfffffff;
 }
 
-// naive as the ordering of characters doesn't matter and will need to be tackled
-export const encodeFromPath = (path) => {
-  const hashids = new Hashids('salt-me', 8, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789');
-  const sumCharacters = [...path]
-    .map((_, i)=>path.charCodeAt(i))
-    .reduce((accumulator, currentValue) => accumulator + currentValue);
-  return 'Svelte' + '$' + hashids.encode(sumCharacters);
-}
-
-// naive as the ordering of characters doesn't matter and will need to be tackled
 export const encodeContentForName = (content) => {
-  const hashids = new Hashids('salt-me', 8, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789');
-  const sumCharacters = [...content]
-    .map((_, i)=>content.charCodeAt(i))
-    .reduce((accumulator, currentValue) => accumulator + currentValue);
-  return 'SvelteComponent' + '.' + hashids.encode(sumCharacters);
+  const hashids = new Hashids('salt-me', 8, hashAlphabet);
+  return 'Svelte' + hashids.encode(positiveHashCode(content));
+}
+
+export const encodeContentForFilename = (content) => {
+  const hashids = new Hashids('salt-me', 8, hashAlphabet);
+  return 'SvelteComponent' + '.' + hashids.encode(positiveHashCode(content));
 }

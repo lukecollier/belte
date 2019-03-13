@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { nameFromPath, filenameFromPath } from '../string.js';
-import { encodeFromPath } from '../encoding.js';
+import { encodeContentForName } from '../encoding.js';
 
 const dependencies = (data, filePath) => {
   var deps = new Set();
@@ -48,13 +48,13 @@ export const compileClient = (src) => {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: encodeFromPath(compData),
+    name: encodeContentForName(compData),
     filename: filenameFromPath(src),
 		format: 'iife',
     globals: (relPath) => {
       const resolved = path.resolve(dir, relPath);
       const data = fs.readFileSync(resolved, 'utf8');
-      return encodeFromPath(data);
+      return encodeContentForName(data);
     }
 	};
 	const compiled = svelte.compile(compData, options);
@@ -95,7 +95,7 @@ export const loader = (src, instances = [{id: '', attr: {}}]) => {
   const {js, css} = compileClient(src); 
 
   const compData = fs.readFileSync(src, 'utf8');
-  const initScript = constructor(encodeFromPath(compData), instances);  
+  const initScript = constructor(encodeContentForName(compData), instances);  
 
   return {
     hooks: hooks, // ssr projection of component to attach to
