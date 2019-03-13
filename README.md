@@ -42,22 +42,24 @@ output.js contains example of svelte compiled greeting
 
 ## Roadmap
 ### 0.0 Proof of Concept
+- [x] have javascript api
 - [x] inline components from a template hmtl file using custom-element syntax (almost)
 - [x] resolve svelte components
 - [x] namespace id's
 - [x] find nested components
 - [x] resolve component dependencies 
 - [x] unique id's per page belte 
-- [ ] have options for belt
-- [ ] allow multiple loaders
+- [x] have base (sources and target) options for belt
+
+### 1.0 Stablilizing Api
+completing the core working well with needed features 
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components
 - [ ] support self closing tags e.g ```html <thing/>```
-
-### 1.0 Stable Api
-completing the core library
 - [ ] investigate licensing
+- [ ] allow multiple loaders
+- [ ] include cli
 - [ ] quickstart
 - [ ] write guide
 - [ ] sourcemaps and other dev goodies 

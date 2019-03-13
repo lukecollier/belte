@@ -10,20 +10,13 @@ import { encodeFromPath, encodeContentForName } from './encoding.js';
 import { isCustomElement, allChildren } from './dom.js';
 
 const defaultOpts = {
-  target: './dist/index.html',
-  cwd: process.cwd(),
-  source: '__tests__/resource/svelte/**.html',
-  legacy: false // support old browsers
+  target: './build/index.html',
+  source: '__tests__/resource/svelte/**.html'
 };
 
-const write = (filename, data) => {
-  const dir = `${process.cwd()}/build`
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-
-  fs.writeFileSync(`${dir}/${filename}`, data, function(err, data) {
-    if (err) throw `Error writing ${filename}`;
-    return filename;
-  });
+const write = (target, data) => {
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, data);
 }
 
 export const findComponentsPaths = (componentNames, glob) => {
@@ -38,10 +31,9 @@ export const findComponentsPaths = (componentNames, glob) => {
   return foundPaths;
 }
 
-export const compile = (html, loader, opts = defaultOpts) => {
+export const compile = (html, loader = loader, opts = defaultOpts) => {
   const $ = cheerio.load(html, { 
-    normalizeWhitespace: true, 
-    recognizeSelfClosing: true 
+    recognizeSelfClosing: false,
   });
 
   var elRefs = new Map();
@@ -66,17 +58,15 @@ export const compile = (html, loader, opts = defaultOpts) => {
     const {hooks, scripts, initScript, styles} = loader(src, instances);
     
     styles.forEach(css => {
-      write(encodeContentForName(css) + '.css', css)
-      headElements.add(
-        `<link rel="stylesheet" href="/${encodeContentForName(css)}.css">`
-      );
+      const resolved = path.resolve(process.cwd(), './build/' + encodeContentForName(css) + '.css');
+      write(resolved, css)
+      headElements.add(`<link rel="stylesheet" href="/${encodeContentForName(css)}.css">`);
     });
 
     [...scripts, initScript].forEach(script => {
-      write(encodeContentForName(script) + '.js', script)
-      headElements.add(
-        `<script defer="true" src="/${encodeContentForName(script)}.js"></script>`
-      );
+      const resolved = path.resolve(process.cwd(), './build/' + encodeContentForName(script) + '.js');
+      write(resolved, script)
+      headElements.add(`<script defer="true" src="/${encodeContentForName(script)}.js"></script>`);
     });
     // don't like these hooks for inserting the html
     hooks.forEach(hook => {
@@ -87,15 +77,10 @@ export const compile = (html, loader, opts = defaultOpts) => {
   });
 
   Array.from(headElements).forEach(element => $('head').append($(element)));
-  
-  write(`${encodeContentForName($.html())}.html`, $.html());
-  write(`index.html`, $.html());
+  const target = path.resolve(process.cwd(), opts.target);
+  write(target, $.html());
 
   return $.html();
-};
-
-export const defaultCompile = (html, opts = defaultOpts) => {
-  return compile(html, loader, opts);
 };
 
 export default defaultCompile;

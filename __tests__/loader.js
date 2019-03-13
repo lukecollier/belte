@@ -4,7 +4,6 @@ import fs from 'fs';
 
 import { defaultCompile } from '../src/core.js';
 
-
 const resource = (filename) => `${__dirname}/resource/template/${filename}`;
 
 test('template-one-element renders one element', t => {
