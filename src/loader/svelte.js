@@ -1,9 +1,8 @@
 import 'svelte/ssr/register';
 // import * as svelte from 'svelte';
 const svelte = require('svelte');
-const traverse = require('@babel/traverse'); // problem having to import using require
-import * as parser from '@babel/parser';
-import * as t from '@babel/types';
+const acorn = require('acorn');
+import { walk } from 'estree-walker';
 import Hashids from 'hashids';
 
 import fs from 'fs';
@@ -24,18 +23,22 @@ const dependencies = (data, filePath) => {
 		format: 'es'
 	};
 	const compiled = svelte.compile(data, options);
-  const ast = parser.parse(compiled.js.code, {sourceType: 'module'});
-  traverse(ast, {
-    ImportDeclaration: (p) => {
-      const valuePath =  p.node.source.value.toString();
-      if (valuePath.endsWith('.html')) {
-        const src = path.resolve(dir, valuePath);
-        const compData = fs.readFileSync(src, 'utf8');
-        dependencies(compData, src).forEach((srcPath, alias) => { 
-          deps.add(srcPath);
-        });
-        deps.add(valuePath);
-      }    
+  const ast = acorn.parse(compiled.js.code, {sourceType: 'module'});
+  walk(ast, {
+    enter: ( node, parent ) => {
+      if (node.type === 'ImportDeclaration') {
+        const valuePath =  node.source.value.toString();
+        if (valuePath.endsWith('.html')) {
+          const src = path.resolve(dir, valuePath);
+          const compData = fs.readFileSync(src, 'utf8');
+          dependencies(compData, src).forEach((srcPath, alias) => { 
+            deps.add(srcPath);
+          });
+          deps.add(valuePath);
+        }
+      }
+    },
+    leave: ( node, parent ) => {
     }
   });
   return deps;
