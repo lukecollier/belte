@@ -31,7 +31,7 @@ export const componentsPaths = (componentNames, glob) => {
   return foundPaths;
 }
 
-export const compile = (html, loader = defaultLoader, opts = defaultOpts) => {
+export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
   const $ = cheerio.load(html, { recognizeSelfClosing: false });
 
   var elRefs = new Map();

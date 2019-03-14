@@ -1,8 +1,8 @@
 import 'svelte/ssr/register';
-import * as svelte from 'svelte';
-
+// import * as svelte from 'svelte';
+const svelte = require('svelte');
+const traverse = require('@babel/traverse'); // problem having to import using require
 import * as parser from '@babel/parser';
-import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 import Hashids from 'hashids';
 
@@ -26,7 +26,7 @@ const dependencies = (data, filePath) => {
 	const compiled = svelte.compile(data, options);
   const ast = parser.parse(compiled.js.code, {sourceType: 'module'});
   traverse(ast, {
-    ImportDeclaration: function(p) {
+    ImportDeclaration: (p) => {
       const valuePath =  p.node.source.value.toString();
       if (valuePath.endsWith('.html')) {
         const src = path.resolve(dir, valuePath);
@@ -76,7 +76,7 @@ export const resolveDependencies = (src) => {
 }
 
 const constructor = (constructorName, instances) => 
-  instances.map(instance => `new ${constructorName}({target:document.getElementById('${instance.id}'),hydrate:true,data:${JSON.stringify(instance.attr)}});`).join('')
+  instances.map(instance => `new ${constructorName}({target:document.getElementById('${instance.id}'),hydrate:true,data:${JSON.stringify(instance.attr)}});`).join('');
   
 
 export const loader = (src, instances = [{id: '', attr: {}}]) => {
@@ -93,14 +93,12 @@ export const loader = (src, instances = [{id: '', attr: {}}]) => {
   const clientDepsStyles = clientDepsCompiled.map(compile => compile.css)
     .filter(style=>style!==null);
   const {js, css} = compileClient(src); 
-
   const compData = fs.readFileSync(src, 'utf8');
-  const initScript = constructor(encodeContentForName(compData), instances);  
 
   return {
     hooks: hooks, // ssr projection of component to attach to
     scripts: [...clientDepsScripts, js.code], // component scripts or logic
-    initScript: initScript, 
+    initScript: constructor(encodeContentForName(compData), instances), 
     styles: (css.code!==null) ? [css.code, ...clientDepsStyles] : clientDepsStyles   
   };
 };

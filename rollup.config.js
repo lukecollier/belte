@@ -8,21 +8,15 @@ let pkg = require('./package.json')
 export default {
   input: './src/index.js',
   external: [ 
-    'cheerio', 
-    'svelte', 
-    'svelte/ssr/register', 
-    'hashids', 
-    '@babel/parser', 
-    '@babel/types',
-    'fs', 
-    'path', 
-    'tty', 
-    'util', 
-    'os' 
+    'url', 'net', 'buffer', 'tty', 'os', 'fs', 'path', 'stream', 'events', 
+    'string_decoder', 'util'
   ],
   plugins: [
+    commonjs({
+      exclude: 'node_modules/@babel/**',
+      namedExports: { 'node_modules/@babel/parser/lib/index.js': ['parse' ] }
+    }),
     resolve(),
-    commonjs(),
     json(),
     babel({
       exclude: 'node_modules/**',

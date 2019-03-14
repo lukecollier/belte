@@ -22,5 +22,5 @@ export const encodeContentForName = (content) => {
 
 export const encodeContentForFilename = (content) => {
   const hashids = new Hashids('salt-me', 8, hashAlphabet);
-  return 'SvelteComponent' + '.' + hashids.encode(positiveHashCode(content));
+  return 'Svelte' + '.' + hashids.encode(positiveHashCode(content));
 }
