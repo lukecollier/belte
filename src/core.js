@@ -1,8 +1,8 @@
 import cheerio from 'cheerio';
+import * as fg from 'fast-glob';
 
 import fs from 'fs';
 import path from 'path';
-import * as fg from 'fast-glob';
 
 import { loader as defaultLoader } from './loader/svelte.js';
 import { hyphenCaseToTitleCase, nameFromPath } from './string.js';

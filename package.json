@@ -19,9 +19,11 @@
     ]
   },
   "dependencies": {
+    "@babel/preset-env": "^7.3.4",
     "acorn": "^6.1.1",
     "cheerio": "^1.0.0-rc.2",
     "fast-glob": "^2.2.6",
+    "fast-html-parser": "^1.0.1",
     "hashids": "^1.2.2",
     "rollup": "^1.4.1",
     "rollup-plugin-commonjs": "^9.2.1",

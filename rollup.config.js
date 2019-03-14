@@ -6,7 +6,6 @@ import sucrase from 'rollup-plugin-sucrase';
 let pkg = require('./package.json')
 
 function onwarn (warning, warn) {
-  if (warning.code === 'CIRCULAR_DEPENDENCY') return;
   warn(warning);
 }
 
@@ -20,14 +19,14 @@ export default {
     json(),
     sucrase({
       exclude: ['node_modules/**'],
-      transforms: ['imports']
+      transforms: []
     }),
     commonjs(),
     resolve(),
   ],		
   output: [
-    { file: pkg.main, format: 'cjs' },
-    { file: pkg.module, format: 'es' }
+    { file: pkg.main, format: 'cjs', sourcemap: true },
+    { file: pkg.module, format: 'es', sourcemap: true }
   ],
   onwarn: onwarn
 }

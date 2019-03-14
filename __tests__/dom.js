@@ -1,11 +1,20 @@
-import cheerio from 'cheerio';
-
 const test = require('ava');
 
-import { isCustomElement, allChildren } from '../src/dom.js';
+import { parse, walk, toString, search } from '../src/dom.js';
 
-test('can get nested elements into a single list', t => {
-  const $ = cheerio.load('<body><div><p><span></span></p><div><h1></h1><p></p></div></div></body>')
-  const result = allChildren($('body')).map(cheerioObj => cheerioObj.name);
-	t.deepEqual(result, ['div', 'p', 'span', 'div', 'h1', 'p'])
+test('walks the dom performing a action', t => {
+  const dom = parse('<div><p>Hello</p></div>');
+	t.deepEqual(toString(dom), '<div><p>Hello</p></div>');
+});
+
+test('can walk over a dom and get names', t => {
+  const dom = parse('<html><div><custom-element/></div></html>');
+  const results = walk(dom[0], (el) => el.name);
+	t.deepEqual(results, ['div', 'custom-element']);
+});
+
+test('can walk over a dom by filtering', t => {
+  const dom = parse('<html><div><custom-element/></div></html>');
+  const results = search(dom[0], (el) => el.name === 'custom-element').map(el=>el.name);
+	t.deepEqual(results, ['custom-element']);
 });

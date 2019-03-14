@@ -1,4 +1,4 @@
-import cheerio from 'cheerio';
+import htmlparser from 'htmlparser2';
 
 const HTML5_ELEMENT_NAMES = ['div', 'base', 'head', 'link', 'meta', 'style', 'title', 
 'body', 'address', 'article', 'aside', 'footer', 'header', 'h1', 'h2', 'h3', 'h4', 
@@ -23,3 +23,29 @@ export const allChildren = (elements) => {
   });
   return tree.get().flat();
 }
+
+export const walk = (node, visitor = (el) => el) => {
+  const tree = htmlparser.DomUtils.getChildren(node).map((el) => {
+    return [visitor(el), ...walk(el, visitor)]
+  });
+  return tree.flat();
+}
+
+export const search = (node, filter = (el) => true) => {
+  return walk(node).filter(filter);
+}
+
+export const parse = (html) => {
+  const handler = new htmlparser.DomHandler((error, dom) => { 
+    if (error) throw Error('parser error');
+  });
+  const parser = new htmlparser.Parser(handler, {
+    decodeEntities: true, 
+    recognizeSelfClosing: true
+  });
+  parser.write(html);
+  parser.end();
+  return parser._cbs.dom;
+}
+
+export const toString = (root) => htmlparser.DomUtils.getOuterHTML(root)
