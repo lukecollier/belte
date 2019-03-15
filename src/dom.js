@@ -48,4 +48,10 @@ export const parse = (html) => {
   return parser._cbs.dom;
 }
 
+export const replaceElement = (element, html) => {
+  const dom = parse(html);
+  const root = dom[0]
+  htmlparser.DomUtils.replaceElement(element, root);
+}
+
 export const toString = (root) => htmlparser.DomUtils.getOuterHTML(root)
