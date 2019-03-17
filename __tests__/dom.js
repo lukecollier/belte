@@ -6,8 +6,6 @@ const { parse, domRefs } = require('../src/dom.js');
 test('parsing a document creates an object', t => {
   const dom = parse("<html><head><title></title></head><body><custom-element></custom-element></body></html>");
   const result = domRefs(dom, {Default: (attr) => '<p>hello</p>'});
-
-  console.log(parse5.serialize(dom));
 	t.snapshot(dom);
 	t.snapshot(result);
 });

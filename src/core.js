@@ -51,28 +51,38 @@ export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
   const dom = parse(html);
   const refs = domRefs(dom, resolversFromGlob(opts.source));
   const sources = validSrc(opts.source);
-  var headElements = [];
+  var headElements = new Set();
+  var stylesAcc = new Set();
+  var scriptsAcc = new Set();
   refs.forEach((instances, name, _) => {
     const src = path.resolve(process.cwd(), sources.get(name));
     const { scripts, styles } = loader(src, instances);
     styles.forEach(css => {
       const resolved = path.resolve(process.cwd(), './build/' + encodeContentForFilename(css) + '.css');
-      write(resolved, css);
-      headElements.push(`<link rel="stylesheet" href="/${encodeContentForFilename(css)}.css">`);
+      // write(resolved, css);
+      stylesAcc.add(css);
+      headElements.add(`<link rel="stylesheet" href="/${encodeContentForFilename(css)}.css">`);
     });
 
     scripts.forEach(script => {
       const resolved = path.resolve(process.cwd(), './build/' + encodeContentForFilename(script) + '.js');
-      write(resolved, script);
-      headElements.push(`<script defer="true" src="/${encodeContentForFilename(script)}.js"></script>`);
+      // write(resolved, script);
+      scriptsAcc.add(script);
+      headElements.add(`<script defer="true" src="/${encodeContentForFilename(script)}.js"></script>`);
     });
   });
   appendToHead(dom, headElements);
-
   const target = path.resolve(process.cwd(), opts.target);
   write(target, serialize(dom));
-
-  return serialize(dom);
+  return {
+    html: serialize(dom), 
+    css: Array.from(stylesAcc).map(content=>{ 
+      return { name: encodeContentForFilename(content) + '.css', code: content}
+    }), 
+    js: Array.from(scriptsAcc).map(content=>{ 
+      return { name: encodeContentForFilename(content) + '.js', code: content}
+    })
+  };
 };
 
 export default compile;
