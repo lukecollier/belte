@@ -1,3 +1,3 @@
-import { defaultCompile } from './core.js' 
+import { compile } from './core.js' 
 
-export default defaultCompile;
+export default compile;

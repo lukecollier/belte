@@ -9,24 +9,32 @@ function onwarn (warning, warn) {
   warn(warning);
 }
 
-export default {
-  input: './src/index.js',
-  external: [ 
-    'url', 'net', 'buffer', 'tty', 'os', 'fs', 'path', 'stream', 'events', 
-    'string_decoder', 'util'
-  ],
-  plugins: [
-    json(),
-    sucrase({
-      exclude: ['node_modules/**'],
-      transforms: []
-    }),
-    commonjs(),
-    resolve(),
-  ],		
-  output: [
-    { file: pkg.main, format: 'cjs', sourcemap: true },
-    { file: pkg.module, format: 'es', sourcemap: true }
-  ],
-  onwarn: onwarn
-}
+const plugins = [
+  json(),
+  sucrase({
+    exclude: ['node_modules/**'],
+    transforms: []
+  }),
+  commonjs({
+    extensions: [ '.js', '.html' ],
+    namedExports: {
+      'node_modules/dom5/lib/index.js': [ 'query', 'queryAll', 'replace', 'append' ]
+    }}),
+  resolve(),
+]
+
+export default [
+  {
+    input: './src/index.js',
+    external: [ 
+      'url', 'net', 'buffer', 'tty', 'os', 'fs', 'path', 'stream', 'events', 
+      'string_decoder', 'util'
+    ],
+    plugins: plugins,		
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
+    ],
+    onwarn: onwarn
+  }
+]

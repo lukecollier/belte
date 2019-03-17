@@ -2,8 +2,12 @@
 	export default {
 		components: { Plain: './PlainElement.html' },
 		data() {
+      const defaultDate = new Date();
+      defaultDate.setMinutes(0);
+      defaultDate.setSeconds(0);
+      defaultDate.setHours(0);
 			return {
-				time: new Date()
+				time: defaultDate
 			};
 		},
 		methods: {

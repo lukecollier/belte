@@ -1,13 +1,12 @@
-import cheerio from 'cheerio';
 import * as fg from 'fast-glob';
 
 import fs from 'fs';
 import path from 'path';
 
-import { loader as defaultLoader } from './loader/svelte.js';
+import { loader as defaultLoader, makeRender } from './loader/svelte.js';
 import { hyphenCaseToTitleCase, nameFromPath } from './string.js';
 import { encodeContentForFilename } from './encoding.js';
-import { isCustomElement, allChildren } from './dom.js';
+import { domRefs, appendToHead, parse, serialize } from './dom.js';
 
 const defaultOpts = {
   target: './build/index.html',
@@ -31,54 +30,49 @@ export const componentsPaths = (componentNames, glob) => {
   return foundPaths;
 }
 
-export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
-  const $ = cheerio.load(html, { recognizeSelfClosing: false });
+export const validSrc = (glob) => {
+  const entries = fg.sync([glob]);
+  var sources = new Map();
+  entries.forEach(path => sources.set(nameFromPath(path), path));
+  return sources;
+}
 
-  var elRefs = new Map();
-  allChildren($('body')).filter((node) => isCustomElement(node)).map((node, i) => {
-    const name = hyphenCaseToTitleCase(node.name);
-    const id = `belte-${i}`;
-    const el = $(`<div id="${id}"></div>`);
-    if (elRefs.has(name)) {
-      elRefs.set(name, [...elRefs.get(name), {id: id, attr: node.attribs}]);
-    } else {
-      elRefs.set(name, [{id: id, attr: node.attribs}]);
-    }
-    $(node).replaceWith(el);
+export const resolversFromGlob = (glob) => {
+  const entries = fg.sync([glob]);
+  let resolvers = {};
+  entries.forEach(path => {
+    const name = nameFromPath(path)
+    resolvers[name] = makeRender(path);
   });
+  return resolvers;
+}
 
-  const paths = componentsPaths([...elRefs.keys()], opts.source);
-
-  var headElements = new Set();
-  elRefs.forEach((instances, name, map) => {
-    const foundPath = paths.filter(path => nameFromPath(path)===name)[0];
-    const src = path.resolve(process.cwd(), foundPath);
-    const { hooks, scripts, initScript, styles } = loader(src, instances);
-    
+export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
+  const dom = parse(html);
+  const refs = domRefs(dom, resolversFromGlob(opts.source));
+  const sources = validSrc(opts.source);
+  var headElements = [];
+  refs.forEach((instances, name, _) => {
+    const src = path.resolve(process.cwd(), sources.get(name));
+    const { scripts, styles } = loader(src, instances);
     styles.forEach(css => {
       const resolved = path.resolve(process.cwd(), './build/' + encodeContentForFilename(css) + '.css');
       write(resolved, css);
-      headElements.add(`<link rel="stylesheet" href="/${encodeContentForFilename(css)}.css">`);
+      headElements.push(`<link rel="stylesheet" href="/${encodeContentForFilename(css)}.css">`);
     });
 
-    [...scripts, initScript].forEach(script => {
+    scripts.forEach(script => {
       const resolved = path.resolve(process.cwd(), './build/' + encodeContentForFilename(script) + '.js');
       write(resolved, script);
-      headElements.add(`<script defer="true" src="/${encodeContentForFilename(script)}.js"></script>`);
-    });
-
-    hooks.forEach(hook => {
-      const result = $(hook.html);
-      result.attr('id', hook.id);
-      $(`#${hook.id}`).replaceWith($(result))
+      headElements.push(`<script defer="true" src="/${encodeContentForFilename(script)}.js"></script>`);
     });
   });
+  appendToHead(dom, headElements);
 
-  Array.from(headElements).forEach(element => $('head').append($(element)));
   const target = path.resolve(process.cwd(), opts.target);
-  write(target, $.html());
+  write(target, serialize(dom));
 
-  return $.html();
+  return serialize(dom);
 };
 
 export default compile;
