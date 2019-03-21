@@ -50,7 +50,8 @@ output.js contains example of svelte compiled greeting
 - [x] resolve component dependencies 
 - [x] unique id's per page belte 
 - [x] have base (sources and target) options for belt
-- [ ] package using roll-up
+- [x] package using roll-up
+- [x] basic cli features 
 
 ### 1.0 Stablilizing Api
 completing the core working well with needed features 
