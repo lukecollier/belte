@@ -8,6 +8,8 @@ export const isCustomElement = (tagNode) => {
   return !HTML5_ELEMENT_NAMES.includes(tagNode.tagName);
 }
 
+const RESERVED_ATTRIB = ['class', 'style', 'href']
+
 export const parse = (html) => parse5.parse(html, {scriptingEnabled:false});
 
 export const serialize = (dom) => parse5.serialize(dom);
@@ -19,13 +21,24 @@ export const appendToHead = (dom, headElements = []) => {
     dom5.append(head, parse5.parseFragment(elementHtml, {scriptingEnabled:false})));
 }
 
+const serializeAttribs = (attribs) => {
+  return attribs.map(attr => `${attr.name}="${attr.value}"`).join(' ');
+}
+
 export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
   const body = dom5.query(dom, (el) => el.tagName === 'body');
   var refs = new Map();
   dom5.queryAll(body, (el) => isCustomElement(el)).forEach((el, i) => {
     const attribs = {};
-    const id = `SvelteComponent-${i}`;
-    el.attrs.forEach(attr => attribs[attr.name] = attr.value);
+    const id = `svelte-component-${i}`;
+    var appliedAttribs = [];
+    el.attrs.forEach(attr => {
+      if (RESERVED_ATTRIB.includes(attr.name)) {
+        appliedAttribs.push(attr);
+      } else {
+        attribs[attr.name] = attr.value
+      }
+    });
     const name = hyphenCaseToTitleCase(el.tagName);
     if (refs.has(name)) {
       refs.set(name, [...refs.get(name), {id: id, attr: attribs}]);
@@ -33,14 +46,10 @@ export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
       refs.set(name, [{id: id, attr: attribs}]);
     }
     if (name in resolvers) {
-      const newEl = parse5.parseFragment(resolvers[name](attribs), {scriptingEnabled:false});
-      const first = dom5.query(newEl, (el) => true);
-      first.attrs.push({name: 'id', value: id});
+      const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers[name](attribs)+'</div>', {scriptingEnabled:false});
       dom5.replace(el, newEl);
     } else {
-      const newEl = parse5.parseFragment(resolvers.Default(attribs), {scriptingEnabled:false});
-      const first = dom5.query(newEl, (el) => true);
-      first.attrs.push({name: 'id', value: id});
+      const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers.Default(attribs)+'</div>', {scriptingEnabled:false});
       dom5.replace(el, newEl);
     }
   });

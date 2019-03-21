@@ -39213,13 +39213,13 @@ const compile = (html, opts = defaultOpts, loader$1 = loader) => {
   return {
     html: serialize$1(dom), 
     css: Array.from(stylesAcc).map(content => { 
-      return { name: encodeContentForFilename(content), code: content}
+      return { name: encodeContentForFilename(content) + '.css', code: content}
     }), 
     js: Array.from(scriptsAcc).map(content => { 
-      return { name: encodeContentForFilename(content), code: content}
+      return { name: encodeContentForFilename(content) + '.js', code: content}
     })
   };
 };
 
 module.exports = compile;
-//# sourceMappingURL=index.cjs.js.map
+//# sourceMappingURL=cli.js.map

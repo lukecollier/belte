@@ -36,5 +36,22 @@ export default [
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
     onwarn: onwarn
+  },
+  {
+    input: './src/cli.js',
+    external: [ 
+      'url', 'net', 'buffer', 'tty', 'os', 'fs', 'path', 'stream', 'events', 
+      'string_decoder', 'util'
+    ],
+    plugins: plugins,		
+    output: [
+      { 
+        file: pkg.bin.belte,
+        banner: '#!/usr/bin/env node',
+        format: 'cjs', 
+        sourcemap: true 
+      },
+    ],
+    onwarn: onwarn
   }
 ]

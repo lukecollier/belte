@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -6,7 +7,8 @@ var pathUtil = _interopDefault(require('path'));
 var util$3 = _interopDefault(require('util'));
 var os = _interopDefault(require('os'));
 var tty = _interopDefault(require('tty'));
-var fs$1 = _interopDefault(require('fs'));
+var fs$1 = require('fs');
+var fs$1__default = _interopDefault(fs$1);
 var net = _interopDefault(require('net'));
 var url = _interopDefault(require('url'));
 var stream$3 = _interopDefault(require('stream'));
@@ -8795,7 +8797,7 @@ function createWritableStdioStream (fd) {
       break;
 
     case 'FILE':
-      var fs = fs$1;
+      var fs = fs$1__default;
       stream = new fs.SyncWriteStream(fd, { autoClose: false });
       stream._type = 'fs';
       break;
@@ -12597,7 +12599,7 @@ exports.applySourceMaps = function() {
     this.map.setSourceContent(file, content);
 
     if (this.options.inputSourcemaps === true) {
-      var originalMap = utils.sourceMapResolve.resolveSync(content, file, fs$1.readFileSync);
+      var originalMap = utils.sourceMapResolve.resolveSync(content, file, fs$1__default.readFileSync);
       if (originalMap) {
         var map = new utils.SourceMap.SourceMapConsumer(originalMap.map);
         var relativeTo = originalMap.sourcesRelativeTo;
@@ -20423,7 +20425,7 @@ var readdir = function (dir, callback) {
   callback = call_1.once(callback);
 
   try {
-    let items = fs$1.readdirSync(dir);
+    let items = fs$1__default.readdirSync(dir);
     callback(null, items);
   }
   catch (err) {
@@ -20443,7 +20445,7 @@ var stat$1 = function (path, callback) {
   callback = call_1.once(callback);
 
   try {
-    let stats = fs$1.statSync(path);
+    let stats = fs$1__default.statSync(path);
     callback(null, stats);
   }
   catch (err) {
@@ -20463,7 +20465,7 @@ var lstat = function (path, callback) {
   callback = call_1.once(callback);
 
   try {
-    let stats = fs$1.lstatSync(path);
+    let stats = fs$1__default.lstatSync(path);
     callback(null, stats);
   }
   catch (err) {
@@ -20584,7 +20586,7 @@ var async = readdirAsync;
 
 
 let asyncFacade = {
-  fs: fs$1,
+  fs: fs$1__default,
   forEach: forEach$1,
   async: true
 };
@@ -20630,7 +20632,7 @@ var stream = readdirStream;
 
 
 let streamFacade = {
-  fs: fs$1,
+  fs: fs$1__default,
   forEach: forEach$1,
   async: true
 };
@@ -21033,10 +21035,10 @@ var fs_1$1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 
 exports.FILE_SYSTEM_ADAPTER = {
-    lstat: fs$1.lstat,
-    stat: fs$1.stat,
-    lstatSync: fs$1.lstatSync,
-    statSync: fs$1.statSync
+    lstat: fs$1__default.lstat,
+    stat: fs$1__default.stat,
+    lstatSync: fs$1__default.lstatSync,
+    statSync: fs$1__default.statSync
 };
 function getFileSystemAdapter(fsMethods) {
     if (!fsMethods) {
@@ -22236,7 +22238,7 @@ const dependencies = (data, filePath) => {
         const valuePath =  node.source.value.toString();
         if (valuePath.endsWith('.html')) {
           const src = pathUtil.resolve(dir, valuePath);
-          const compData = fs$1.readFileSync(src, 'utf8');
+          const compData = fs$1__default.readFileSync(src, 'utf8');
           dependencies(compData, src).forEach((srcPath, alias) => { 
             deps.add(srcPath);
           });
@@ -22251,7 +22253,7 @@ const dependencies = (data, filePath) => {
 };
 
 const compileClient = (src) => {
-  const compData = fs$1.readFileSync(src, 'utf8');
+  const compData = fs$1__default.readFileSync(src, 'utf8');
   const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
@@ -22262,7 +22264,7 @@ const compileClient = (src) => {
 		format: 'iife',
     globals: (relPath) => {
       const resolved = pathUtil.resolve(dir, relPath);
-      const data = fs$1.readFileSync(resolved, 'utf8');
+      const data = fs$1__default.readFileSync(resolved, 'utf8');
       return encodeContentForName(data);
     }
 	};
@@ -22278,7 +22280,7 @@ const makeRender = (path) => {
 };
 
 const resolveDependencies = (src) => {
-  const data = fs$1.readFileSync(src, 'utf8');
+  const data = fs$1__default.readFileSync(src, 'utf8');
   var result = new Set();
   const deps = dependencies(data, src);
   const dir = pathUtil.dirname(src);
@@ -22299,7 +22301,7 @@ const loader = (src, instances = [{id: '', attr: {}}]) => {
   const stylesDeps = clientDepsCompiled.map(compile => compile.css)
     .filter(style => style !== null);
   const {js, css} = compileClient(src); 
-  const compData = fs$1.readFileSync(src, 'utf8');
+  const compData = fs$1__default.readFileSync(src, 'utf8');
   const initScript = constructor(encodeContentForName(compData), instances);
 
   return {
@@ -39221,5 +39223,75 @@ const compile = (html, opts = defaultOpts, loader$1 = loader) => {
   };
 };
 
-module.exports = compile;
-//# sourceMappingURL=index.cjs.js.map
+const {R_OK, W_OK} = fs$1.constants;
+
+var argv = require('minimist')(process.argv.slice(2));
+
+if (argv._[0] === 'on' && argv._.length === 1 && !argv.help){
+  const input = getNeededAttr('input');
+  const output = getNeededAttr('output');
+  const inputSrc = pathUtil.resolve(process.cwd(), input);
+  const outputSrc = pathUtil.resolve(process.cwd(), output);
+  try {
+    fs$1.accessSync(inputSrc, R_OK); 
+  } catch (_err) {
+    exitWithError(`can't access input file at "${inputSrc}", do you have access and the file exists?`);
+  }
+  try {
+    fs$1.accessSync(outputSrc, W_OK); 
+  } catch (_err) {
+    exitWithError(`can't access output file at "${outputSrc}", do you have access and the file exists?`);
+  }
+  const data = fs$1.readFileSync(inputSrc, 'utf8');
+  try {
+    const compiled = compile(data);
+    compiled.css.forEach(css => {
+      write(`${outputSrc}/${css.name}.css`, css.code);
+    });
+    compiled.js.forEach(js => {
+      write(`${outputSrc}/${js.name}.js`, js.code);
+    });
+    write(`${outputSrc}/index.html`, compiled.html);
+  } catch (e) {
+    exitWithError(`failed to compile`);
+  }
+  // process.stdout.write(JSON.stringify(compile(data)) + '\n');
+} else {
+  help();
+}
+
+function help() {
+  console.log('todo: implement help');
+}
+
+function getNeededAttr(attr) {
+  const shortName = attr.substring(0,1);
+  if (present(attr)) {
+    return argv[attr]
+  } else if (present(shortName)) {
+    return argv[shortName]
+  } else {
+    exitWithError(`missing needed parameter: ${attr} ${shortName}`);
+  }
+}
+
+function present(name) {
+  return Object.keys(argv).includes(name)
+}
+
+function exitWithError(message) {
+  console.log(message);
+  process.exit(1);
+}
+
+function write(target, data) {
+  const src = pathUtil.resolve(process.cwd(), target);
+  fs$1.mkdirSync(pathUtil.dirname(target), { recursive: true });
+  fs$1.writeFile(target, data, (err) => {
+    if (err) {
+      exitWithError(err);
+    } else {
+      console.log('successs!', `written to "${src}"`);
+    }});
+}
+//# sourceMappingURL=belte.map
