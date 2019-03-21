@@ -15,12 +15,17 @@ const positiveHashCode = (s) => {
   return hashCode(s) & 0xfffffff;
 }
 
-export const encodeContentForName = (content) => {
-  const hashids = new Hashids('salt-me', 8, hashAlphabet);
+export const encodeContentForName = (content, salt = 'salt-me') => {
+  const hashids = new Hashids(salt, 8, hashAlphabet);
   return 'Svelte' + hashids.encode(positiveHashCode(content));
 }
 
-export const encodeContentForFilename = (content) => {
-  const hashids = new Hashids('salt-me', 8, hashAlphabet);
+export const encodeContent = (content, prefix = '', salt = 'salt',) => {
+  const hashids = new Hashids(salt, 16, hashAlphabet);
+  return `${prefix}${hashids.encode(positiveHashCode(content))}`;
+}
+
+export const encodeContentForFilename = (content, salt = 'salt-me') => {
+  const hashids = new Hashids(salt, 8, hashAlphabet);
   return 'Svelte' + '.' + hashids.encode(positiveHashCode(content));
 }

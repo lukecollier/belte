@@ -1,15 +1,17 @@
 import * as fg from 'fast-glob';
+import * as R from 'ramda';
 
 import fs from 'fs';
 import path from 'path';
 
 import { loader as defaultLoader, makeRender } from './loader/svelte.js';
 import { hyphenCaseToTitleCase, nameFromPath } from './string.js';
-import { encodeContentForFilename } from './encoding.js';
+import { encodeContent } from './encoding.js';
 import { domRefs, appendToHead, parse, serialize } from './dom.js';
 
 const defaultOpts = {
-  source: '__tests__/resource/svelte/**.html'
+  source: '__tests__/resource/svelte/**.html',
+  salt: 'default-salt'
 };
 
 export const componentsPaths = (componentNames, glob) => {
@@ -43,6 +45,7 @@ export const resolversFromGlob = (glob) => {
 }
 
 export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
+  const encode = R.partialRight(encodeContent, [opts.salt])
   const dom = parse(html);
   const refs = domRefs(dom, resolversFromGlob(opts.source));
   const sources = validSrc(opts.source);
@@ -54,22 +57,22 @@ export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
     const { scripts, styles } = loader(src, instances);
     styles.forEach(css => {
       stylesAcc.add(css);
-      headElements.add(`<link rel="stylesheet" href="/${encodeContentForFilename(css)}.css">`);
+      headElements.add(`<link rel="stylesheet" href="/${encode(css, 'Svelte.')}.css">`);
     });
 
     scripts.forEach(script => {
       scriptsAcc.add(script);
-      headElements.add(`<script defer="true" src="/${encodeContentForFilename(script)}.js"></script>`);
+      headElements.add(`<script defer="true" src="/${encode(script, 'Svelte.')}.js"></script>`);
     });
   });
   appendToHead(dom, headElements);
   return {
     html: serialize(dom), 
     css: Array.from(stylesAcc).map(content => { 
-      return { name: encodeContentForFilename(content), code: content}
+      return { name: encode(content, 'Svelte.'), code: content}
     }), 
     js: Array.from(scriptsAcc).map(content => { 
-      return { name: encodeContentForFilename(content), code: content}
+      return { name: encode(content, 'Svelte.'), code: content}
     })
   };
 };

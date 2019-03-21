@@ -4,12 +4,13 @@ const svelte = require('svelte');
 const acorn = require('acorn');
 import { walk } from 'estree-walker';
 import Hashids from 'hashids';
+import * as R from 'ramda';
 
 import fs from 'fs';
 import pathUtil from 'path';
 
 import { nameFromPath, filenameFromPath } from '../string.js';
-import { encodeContentForName } from '../encoding.js';
+import { encodeContent } from '../encoding.js';
 
 const dependencies = (data, filePath) => {
   var deps = new Set();
@@ -44,20 +45,20 @@ const dependencies = (data, filePath) => {
   return deps;
 }
 
-export const compileClient = (src) => {
+export const compileClient = (src, encode) => {
   const compData = fs.readFileSync(src, 'utf8');
   const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: encodeContentForName(compData),
-    filename: filenameFromPath(src),
+    name: encode(compData, 'Svelte'),
+    filename: encode(compData, 'Svelte.'),
 		format: 'iife',
     globals: (relPath) => {
       const resolved = pathUtil.resolve(dir, relPath);
       const data = fs.readFileSync(resolved, 'utf8');
-      return encodeContentForName(data);
+      return encode(data, 'Svelte');
     }
 	};
 	const compiled = svelte.compile(compData, options);
@@ -71,14 +72,14 @@ export const makeRender = (path) => {
   return (attr) => component.render(attr).html;
 }
 
-export const resolveDependencies = (src) => {
+export const resolveDependencies = (src, encode) => {
   const data = fs.readFileSync(src, 'utf8');
   var result = new Set();
   const deps = dependencies(data, src);
   const dir = pathUtil.dirname(src);
   for (const key of deps.keys()) {
     const resolvedPath = pathUtil.resolve(dir, key);
-    const {js, css} = compileClient(resolvedPath);
+    const {js, css} = compileClient(resolvedPath, encode);
     result.add({js: js.code, css: css.code});
   };
   
@@ -88,14 +89,16 @@ export const resolveDependencies = (src) => {
 const constructor = (constructorName, instances) => 
   instances.map(instance => `new ${constructorName}({target:document.getElementById('${instance.id}'),hydrate:true,data:${JSON.stringify(instance.attr)}});`).join('');
 
-export const loader = (src, instances = [{id: '', attr: {}}]) => {
-  const clientDepsCompiled = resolveDependencies(src);
+export const loader = (src, instances = [{id: '', attr: {}}], 
+  encode = R.partialRight(encodeContent, ['salt'])) => {
+
+  const clientDepsCompiled = resolveDependencies(src, encode);
   const scriptsDeps = clientDepsCompiled.map(compile => compile.js);
   const stylesDeps = clientDepsCompiled.map(compile => compile.css)
     .filter(style => style !== null);
-  const {js, css} = compileClient(src); 
+  const {js, css} = compileClient(src, encode); 
   const compData = fs.readFileSync(src, 'utf8');
-  const initScript = constructor(encodeContentForName(compData), instances);
+  const initScript = constructor(encode(compData, 'Svelte'), instances);
 
   return {
     scripts: [
