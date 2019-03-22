@@ -10,7 +10,7 @@ import { encodeContent } from './encoding.js';
 import { domRefs, appendToHead, parse, serialize } from './dom.js';
 
 const defaultOpts = {
-  source: '__tests__/resource/svelte/**.html',
+  source: 'src/**/*.html',
   salt: 'default-salt'
 };
 
@@ -53,6 +53,7 @@ export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
   var stylesAcc = new Set();
   var scriptsAcc = new Set();
   refs.forEach((instances, name, _) => {
+    console.log(process.cwd(), sources.get(name));
     const src = path.resolve(process.cwd(), sources.get(name));
     const { scripts, styles } = loader(src, instances);
     styles.forEach(css => {
