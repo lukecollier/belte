@@ -1,0 +1,40 @@
+<script>
+  import ex from './externalLogic.js';
+	export default {
+		components: { Plain: './PlainElement.html' },
+		data() {
+      const defaultDate = new Date();
+      defaultDate.setMinutes(0);
+      defaultDate.setSeconds(0);
+      defaultDate.setHours(0);
+			return {
+				time: defaultDate,
+        external: ex()
+			};
+		},
+		methods: {
+			updateDate(_event) {
+				this.set({time: new Date()});
+			}
+		},
+		computed: {
+			hours:   ({ time }) => time.getHours(),
+			minutes: ({ time }) => time.getMinutes(),
+			seconds: ({ time }) => time.getSeconds()
+		}
+	};
+</script>
+
+<div>
+  <Plain/>
+  <h1>{external}</h1>
+  <span>The time is: <time datetime="{hours}:{minutes}:{seconds}">{hours}:{minutes}:{seconds}</time></span>
+	<button on:click="updateDate(event)">update</button>
+</div>
+
+<style>
+span {
+  background: black;
+	color: white;
+}
+</style>

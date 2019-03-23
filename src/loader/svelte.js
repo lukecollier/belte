@@ -1,10 +1,7 @@
-
-
 const svelte = require('svelte');
 const acorn = require('acorn');
 import { walk } from 'estree-walker';
 import Hashids from 'hashids';
-import * as R from 'ramda';
 
 import fs from 'fs';
 import pathUtil from 'path';
@@ -50,7 +47,7 @@ export const compileClient = (src, encode) => {
   const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
-		css: false,	
+		css: true,	
 		hydratable: true,
     name: encode(compData, 'Svelte'),
     filename: encode(compData, 'Svelte.'),
@@ -61,7 +58,7 @@ export const compileClient = (src, encode) => {
       return encode(data, 'Svelte');
     }
 	};
-	const compiled = svelte.compile(compData, options);
+	return svelte.compile(compData, options);
 	return compiled;
 };
 
@@ -89,8 +86,7 @@ export const resolveDependencies = (src, encode) => {
 const constructor = (constructorName, instances) => 
   instances.map(instance => `new ${constructorName}({target:document.getElementById('${instance.id}'),hydrate:true,data:${JSON.stringify(instance.attr)}});`).join('');
 
-export const loader = (src, instances = [{id: '', attr: {}}], 
-  encode = R.partialRight(encodeContent, ['salt'])) => {
+export const loader = (src, instances = [{id: '', attr: {}}], encode) => {
 
   const clientDepsCompiled = resolveDependencies(src, encode);
   const scriptsDeps = clientDepsCompiled.map(compile => compile.js);

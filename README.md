@@ -41,20 +41,12 @@ output.js contains example of svelte compiled greeting
 ## Guide
 
 ## Roadmap
-### 0.0 Proof of Concept
-- [x] have javascript api
-- [x] inline components from a template hmtl file using custom-element syntax (almost)
-- [x] resolve svelte components
-- [x] namespace id's
-- [x] find nested components
-- [x] resolve component dependencies 
-- [x] unique id's per page belte 
-- [x] have base (sources and target) options for belt
-- [x] package using roll-up
-- [x] basic cli features 
-
 ### 1.0 Stablilizing Api
 completing the core working well with needed features 
+- [ ] can get import and resolve node modules code
+- [ ] support multiple frameworks
+- [ ] only update changed components using their names for caching
+- [ ] decrease chance of collision using xxHash encoding for filenames
 - [ ] parse attributes as numbers and objects not just as strings
 - [ ] debug options, e.g adding component names before hash versioning
 - [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
@@ -69,10 +61,12 @@ completing the core working well with needed features
 - [ ] sourcemaps and other dev goodies 
 - [ ] optimize
 - [ ] slot elements
+- [ ] pass state through component trees
+- [ ] syntax for generating states
+- [ ] make loaders dumb (loaders should expose simple functions for compiling component js, html, css and initializers)
 
 ### Future Work
 Vague ideas for nice-to-haves.
-- [ ] support multiple frameworks
 - [ ] integrate with static site generator (Hugo, Zola, Jekyll)
 - [ ] enable multiple frameworks and versions
 - [ ] internal library called belt sander for resolving dependencies efficiently

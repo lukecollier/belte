@@ -1,4 +1,3 @@
-import RewritingStream from 'parse5-html-rewriting-stream';
 import parse5 from 'parse5';
 import * as dom5 from 'dom5';
 import { hyphenCaseToTitleCase } from './string.js';

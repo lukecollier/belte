@@ -1,4 +1,5 @@
 import Hashids from 'hashids';
+import mmh3 from 'murmurhash3';
 
 const hashAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -29,3 +30,8 @@ export const encodeContentForFilename = (content, salt = 'salt-me') => {
   const hashids = new Hashids(salt, 8, hashAlphabet);
   return 'Svelte' + '.' + hashids.encode(positiveHashCode(content));
 }
+
+export const encodeFile = (content, salt=128) =>
+  mmh3.murmur128HexSync(content, salt);
+
+

@@ -40,12 +40,12 @@ export const resolversFromGlob = (glob) => {
     const name = nameFromPath(path)
     resolvers[name] = makeRender(path);
   });
-  resolvers.Default = (_) => '<belte-error></betle-error>';
+  resolvers.Default = (name) => `<p style="background:red;color:white;">error with resolver ${name}</p>`;
   return resolvers;
 }
 
 export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
-  const encode = R.partialRight(encodeContent, [opts.salt])
+  const encode = R.partialRight(encodeContent, [opts.salt]);
   const dom = parse(html);
   const refs = domRefs(dom, resolversFromGlob(opts.source));
   const sources = validSrc(opts.source);
@@ -53,9 +53,8 @@ export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
   var stylesAcc = new Set();
   var scriptsAcc = new Set();
   refs.forEach((instances, name, _) => {
-    console.log(process.cwd(), sources.get(name));
     const src = path.resolve(process.cwd(), sources.get(name));
-    const { scripts, styles } = loader(src, instances);
+    const { scripts, styles } = loader(src, instances, encode);
     styles.forEach(css => {
       stylesAcc.add(css);
       headElements.add(`<link rel="stylesheet" href="/${encode(css, 'Svelte.')}.css">`);
