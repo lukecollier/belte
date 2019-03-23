@@ -1,6 +1,10 @@
 # belte [/belt-ah/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
+## CLI
+We can use the cli by passing globs or paths for components and giving a html template including a output directory with -o.
+`belte on __tests__/resource/svelte/*.html -t __tests__/resource/template/one-element.template.html -o build/`
+
 ## Q/A
 - Q: Why?
   A: Inspired by the [JAM stack](https://jamstack.org/) I wanted to get all the benefits of a statically generated page with all the atomic, lean and interactivity of a javascript framework.

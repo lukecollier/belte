@@ -1,8 +1,8 @@
+const svelte = require('svelte');
 import * as R from 'ramda';
 import { readFileSync } from 'fs';
 import  pathUtil from 'path';
 import { walk } from 'estree-walker';
-import * as svelte from 'svelte';
 const acorn = require('acorn');
 
 export const render = (src, attr) => {
@@ -11,13 +11,13 @@ export const render = (src, attr) => {
   return require(src).render(attr).html
 }
 
-export const client = (dir, comp, encode, attr) => {
+export const client = (dir, comp, encode) => {
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
     name: 'Svelte' + encode(comp),
-    filename: 'Svelte.' + encode(comp) + '.js',
+    filename: 'Svelte' + encode(comp) + '.js',
 		format: 'iife',
     globals: (relPath) => {
       const data = readFileSync(pathUtil.resolve(dir, relPath), 'utf8');
@@ -37,11 +37,11 @@ export const style = (data) => {
 }
 
 export const constructor = (name, id, attr) => 
-  `new ${name}({target:document.getElementById('${id}'),hydrate:true,data:${JSON.stringify(attr)}});`;
+  `new ${"Svelte" + name}({target:document.getElementById('${id}'),hydrate:true,data:${JSON.stringify(attr)}});`;
 
 const builtins = require("module").builtinModules;
 export const imports = (code, dir) => {
-  var deps = new Set(); // use set to avoid duplicating resolutions
+  var deps = new Set();
   walk(acorn.parse(code, {sourceType: 'module'}), {
     enter: ( node, parent ) => {
       if (node.type === 'ImportDeclaration') {
@@ -86,7 +86,7 @@ export const loader = (src, encode) => {
   return {
     render: R.partial(render, [src]),
     client: R.partial(client, [dir, data, encode]),
-    styles: R.partial(style, [src]),
+    styles: R.partial(style, [data]),
     constructor: R.partial(constructor, [name]),
     dependencies: compDeps,  
     otherDependencies: otherDeps,  

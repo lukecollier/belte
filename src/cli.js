@@ -5,38 +5,48 @@ import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
 const {R_OK, W_OK} = constants;
 
 var argv = require('minimist')(process.argv.slice(2));
+console.log(argv);
 
-if (argv._[0] === 'on' && argv._.length === 1 && !argv.help){
-  const input = getNeededAttr('input');
+const [first, ...components] = argv._;
+if (!argv.help && first === 'on' && components.length !== 0) {
+  const template = getNeededAttr('template');
   const output = getNeededAttr('output');
-  const inputSrc = path.resolve(process.cwd(), input);
-  const outputSrc = path.resolve(process.cwd(), output);
+  const templateSrc = path.resolve(process.cwd(), template);
+  const target = path.resolve(process.cwd(), output);
+  if (canAccessPaths([...components, templateSrc, target])) {
+    const data = readFileSync(templateSrc, 'utf8');
+    try {
+      const opts = {
+        components: components,
+        salt: 'default-salt'
+      };
+      const compiled = compile(data, opts);
+      compiled.css.forEach(css => {
+        write(`${target}/${css.name}.css`, css.code)
+      });
+      compiled.js.forEach(js => {
+        write(`${target}/${js.name}.js`, js.code)
+      });
+      write(`${target}/index.html`, compiled.html)
+    } catch (e) {
+      exitWithError(`failed to compile ${e}`);
+    }
+  }
+}
+
+function canAccessPaths(paths) {
+  return paths.reduce((acc, src) => {
+    return acc && tryAccess(src)
+  });
+}
+
+function tryAccess(src) {
   try {
-    accessSync(inputSrc, R_OK); 
+    accessSync(src, W_OK); 
+    return true;
   } catch (_err) {
-    exitWithError(`can't access input file at "${inputSrc}", do you have access and the file exists?`);
+    exitWithError(`can't access output file at "${src}", do you have access and the file exists?`);
   }
-  try {
-    accessSync(outputSrc, W_OK); 
-  } catch (_err) {
-    exitWithError(`can't access output file at "${outputSrc}", do you have access and the file exists?`);
-  }
-  const data = readFileSync(inputSrc, 'utf8');
-  try {
-    const compiled = compile(data);
-    compiled.css.forEach(css => {
-      write(`${outputSrc}/${css.name}.css`, css.code)
-    });
-    compiled.js.forEach(js => {
-      write(`${outputSrc}/${js.name}.js`, js.code)
-    });
-    write(`${outputSrc}/index.html`, compiled.html)
-  } catch {
-    exitWithError(`failed to compile`);
-  }
-  // process.stdout.write(JSON.stringify(compile(data)) + '\n');
-} else {
-  help();
 }
 
 function help() {

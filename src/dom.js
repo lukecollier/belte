@@ -8,7 +8,6 @@ export const isCustomElement = (tagNode) => {
 }
 
 const RESERVED_ATTRIB = ['class', 'style', 'href']
-
 export const parse = (html) => parse5.parse(html, {scriptingEnabled:false});
 
 export const serialize = (dom) => parse5.serialize(dom);

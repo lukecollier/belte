@@ -1,80 +1,65 @@
-import * as fg from 'fast-glob';
 import * as R from 'ramda';
 
 import fs from 'fs';
-import path from 'path';
+import pathUtil from 'path';
 
-import { loader as defaultLoader, makeRender } from './loader/svelte.js';
-import { hyphenCaseToTitleCase, nameFromPath } from './string.js';
+import { loader as defaultLoader } from './loader/sveltev2.js';
+import { nameFromPath } from './string.js';
 import { encodeContent } from './encoding.js';
 import { domRefs, appendToHead, parse, serialize } from './dom.js';
 
 const defaultOpts = {
-  source: 'src/**/*.html',
+  components: [],
   salt: 'default-salt'
 };
 
-export const componentsPaths = (componentNames, glob) => {
-  const entries = fg.sync([glob]);
-  var foundPaths = [];
-  entries.forEach(path => {
-    const name = nameFromPath(path)
-    if (componentNames.includes(name)) {
-      foundPaths.push(path);
-    }
-  });
-  return foundPaths;
+export const allLoaders = (componentPaths, partialLoader, encode) => {
+  return new Map(componentPaths.map(path => {
+    const src = pathUtil.resolve(process.cwd(), path);  
+    return [ nameFromPath(path), partialLoader(src, encode) ];
+  }));
 }
 
-export const validSrc = (glob) => {
-  const entries = fg.sync([glob]);
-  var sources = new Map();
-  entries.forEach(path => sources.set(nameFromPath(path), path));
-  return sources;
+export const htmlResolversFromLoaders = (loaders) => {
+  const arr = Array.from(loaders.entries()).map((entry, i) => {
+    return [entry[0], entry[1].render];
+  }); 
+  return Object.assign(...arr.map(d => ({[d[0]]: d[1]})))
 }
 
-export const resolversFromGlob = (glob) => {
-  const entries = fg.sync([glob]);
-  let resolvers = {};
-  entries.forEach(path => {
-    const name = nameFromPath(path)
-    resolvers[name] = makeRender(path);
-  });
-  resolvers.Default = (name) => `<p style="background:red;color:white;">error with resolver ${name}</p>`;
-  return resolvers;
-}
+const stylesheet = (href) => `<link rel="stylesheet" href="/${href}.css">`
+const script = (src) => `<script defer="true" src="/${src}.js"></script>`
 
 export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
   const encode = R.partialRight(encodeContent, [opts.salt]);
   const dom = parse(html);
-  const refs = domRefs(dom, resolversFromGlob(opts.source));
-  const sources = validSrc(opts.source);
-  var headElements = new Set();
-  var stylesAcc = new Set();
-  var scriptsAcc = new Set();
-  refs.forEach((instances, name, _) => {
-    const src = path.resolve(process.cwd(), sources.get(name));
-    const { scripts, styles } = loader(src, instances, encode);
-    styles.forEach(css => {
-      stylesAcc.add(css);
-      headElements.add(`<link rel="stylesheet" href="/${encode(css, 'Svelte.')}.css">`);
-    });
+  const loaders = allLoaders(opts.components, loader, encode);
+  const refs = domRefs(dom, htmlResolversFromLoaders(loaders));
+  
+  const js = [...refs.entries()].map(([name, ...instances]) => {
+    const constructors = instances.flat()
+      .map(instance => loaders.get(name).constructor(instance.id, instance.attr));
+    const deps = loaders.get(name).dependencies()
+      .map(dep=>loaders.get(nameFromPath(dep)).client());
+    const result = [...deps, loaders.get(name).client(), ...constructors];
+    result.forEach(content => appendToHead(dom, [script(encode(content))]));
+    return result;
+  }).flat(); 
 
-    scripts.forEach(script => {
-      scriptsAcc.add(script);
-      headElements.add(`<script defer="true" src="/${encode(script, 'Svelte.')}.js"></script>`);
-    });
-  });
-  appendToHead(dom, headElements);
+  const css = [...refs.keys()].map((name) => {
+    const deps = loaders.get(name).dependencies()
+      .map(dep=>loaders.get(nameFromPath(dep)).styles());
+    const result = [loaders.get(name).styles(), ...deps]
+      .filter(content => content !== null);
+    result.forEach(content => appendToHead(dom, [stylesheet(encode(content))]));
+    return result;
+  }).flat(); 
+
   return {
     html: serialize(dom), 
-    css: Array.from(stylesAcc).map(content => { 
-      return { name: encode(content, 'Svelte.'), code: content}
-    }), 
-    js: Array.from(scriptsAcc).map(content => { 
-      return { name: encode(content, 'Svelte.'), code: content}
-    })
+    css: css.map(content => ({name: encode(content), code: content})),
+    js: js.map(content => ({name: encode(content), code: content}))
   };
-};
+}
 
 export default compile;

@@ -6,8 +6,7 @@ import { resolve } from 'path';
 import { imports, deps } from '../../src/loader/sveltev2.js';
 
 const resource = (filename) => {
-  return resolve(`${__dirname}`, 
-    `../resource/svelte/${filename}`);
+  return resolve(`${__dirname}`, `../resource/svelte/${filename}`);
 }
 
 test('gets first level imports from a file', t => {
@@ -36,13 +35,5 @@ test('gets multiple nested svelte dependencies', t => {
     resource('PlainElement.html'), 
     resource('LogicElement.html'), 
     resource('PlainElement.html') 
-  ]);
-});
-
-test('gets non component dependencies', t => {
-  const result = deps(resource('ExternalLogicElement.html'));
-  t.deepEqual(result, [ 
-    resource('externalLogic.js'), 
-    resource('PlainElement.html'), 
   ]);
 });

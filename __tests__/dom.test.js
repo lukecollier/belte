@@ -7,6 +7,6 @@ test('parsing a document creates an object', t => {
   const dom = parse("<html><head><title></title></head><body><custom-element></custom-element></body></html>");
   const result = domRefs(dom, {Default: (attr) => '<p>hello</p>'});
 	t.snapshot(dom);
-	t.snapshot(result);
+	t.deepEqual(Array.from(result.keys()), ['CustomElement']);
 });
 
