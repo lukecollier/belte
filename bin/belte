@@ -5,7 +5,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var fs = require('fs');
 var fs__default = _interopDefault(fs);
-var path = _interopDefault(require('path'));
+var pathUtil = _interopDefault(require('path'));
 var util$1 = _interopDefault(require('util'));
 
 /**
@@ -446,7 +446,7 @@ const client = (dir, comp, encode) => {
     filename: 'Svelte' + encode(comp) + '.js',
 		format: 'iife',
     globals: (relPath) => {
-      const data = fs.readFileSync(path.resolve(dir, relPath), 'utf8');
+      const data = fs.readFileSync(pathUtil.resolve(dir, relPath), 'utf8');
       return 'Svelte' + encode(data);
     }
 	};
@@ -473,10 +473,10 @@ const imports = (code, dir) => {
       if (node.type === 'ImportDeclaration') {
         const source =  node.source.value.toString();
         if (source.endsWith('.html')) {
-          deps.add(path.resolve(dir, source));
+          deps.add(pathUtil.resolve(dir, source));
         } else if (!builtins.includes(source)) {
-          const path$1 = path.resolve(dir, source);
-          deps.add(require.resolve(path$1));
+          const path = pathUtil.resolve(dir, source);
+          deps.add(require.resolve(path));
         } else {
           throw Error('Module does not exist or is a node module');
         }
@@ -495,7 +495,7 @@ const deps = (src) => {
 		format: 'es'
 	};
 	const code = svelte.compile(data, options).js.code;
-  const dir = path.dirname(src);
+  const dir = pathUtil.dirname(src);
   return imports(code, dir).map(src => { 
     return [src, deps(src)].flat()
   }).flat();
@@ -503,7 +503,7 @@ const deps = (src) => {
 
 const loader = (src, encode) => {
   const data = fs.readFileSync(src, 'utf8');
-  const dir = path.dirname(src);
+  const dir = pathUtil.dirname(src);
   const name = encode(data);
 
   const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
@@ -880,9 +880,6 @@ const encodeContent = (content, salt = 'salt',) => {
   const hashids = new Hashids(salt, 16, hashAlphabet);
   return hashids.encode(positiveHashCode(content));
 };
-
-// export const variableName = (content, seed=128, salt = 'salt-me') =>
-//   mmh3.murmur128HexSync(salt + content, seed);
 
 function commonjsRequire () {
 	throw new Error('Dynamic requires are not currently supported by rollup-plugin-commonjs');
@@ -9821,9 +9818,9 @@ const defaultOpts = {
 };
 
 const allLoaders = (componentPaths, partialLoader, encode) => {
-  return new Map(componentPaths.map(path$1 => {
-    const src = path.resolve(process.cwd(), path$1);  
-    return [ nameFromPath(path$1), partialLoader(src, encode) ];
+  return new Map(componentPaths.map(path => {
+    const src = pathUtil.resolve(process.cwd(), path);  
+    return [ nameFromPath(path), partialLoader(src, encode) ];
   }));
 };
 
@@ -9844,7 +9841,8 @@ const compile = (html, opts = defaultOpts, loader$1 = loader) => {
   const refs = domRefs(dom, htmlResolversFromLoaders(loaders));
   
   const js = [...refs.entries()].map(([name, ...instances]) => {
-    const constructors = instances.flat().map(instance => loaders.get(name).constructor(instance.id, instance.attr));
+    const constructors = instances.flat()
+      .map(instance => loaders.get(name).constructor(instance.id, instance.attr));
     const deps = loaders.get(name).dependencies()
       .map(dep=>loaders.get(nameFromPath(dep)).client());
     const result = [...deps, loaders.get(name).client(), ...constructors];
@@ -9857,11 +9855,10 @@ const compile = (html, opts = defaultOpts, loader$1 = loader) => {
       .map(dep=>loaders.get(nameFromPath(dep)).styles());
     const result = [loaders.get(name).styles(), ...deps]
       .filter(content => content !== null);
-    result.forEach(content => {
-      appendToHead(dom, [stylesheet(encode(content))]);
-    });
+    result.forEach(content => appendToHead(dom, [stylesheet(encode(content))]));
     return result;
   }).flat(); 
+
   return {
     html: serialize(dom), 
     css: css.map(content => ({name: encode(content), code: content})),
@@ -9872,14 +9869,13 @@ const compile = (html, opts = defaultOpts, loader$1 = loader) => {
 const {R_OK, W_OK} = fs.constants;
 
 var argv = require('minimist')(process.argv.slice(2));
-console.log(argv);
 
 const [first, ...components] = argv._;
 if (!argv.help && first === 'on' && components.length !== 0) {
   const template = getNeededAttr('template');
   const output = getNeededAttr('output');
-  const templateSrc = path.resolve(process.cwd(), template);
-  const target = path.resolve(process.cwd(), output);
+  const templateSrc = pathUtil.resolve(process.cwd(), template);
+  const target = pathUtil.resolve(process.cwd(), output);
   if (canAccessPaths([...components, templateSrc, target])) {
     const data = fs.readFileSync(templateSrc, 'utf8');
     try {
@@ -9899,6 +9895,8 @@ if (!argv.help && first === 'on' && components.length !== 0) {
       exitWithError(`failed to compile ${e}`);
     }
   }
+} else {
+	help();
 }
 
 function canAccessPaths(paths) {
@@ -9914,42 +9912,6 @@ function tryAccess(src) {
   } catch (_err) {
     exitWithError(`can't access output file at "${src}", do you have access and the file exists?`);
   }
-}
-if (argv._.length === 1 && argv._[0] === 'on' && !argv.help){
-  const input = getNeededAttr('input');
-  const componentGlob = getNeededAttr('component-source');
-  const output = getNeededAttr('output');
-  const inputSrc = path.resolve(process.cwd(), input);
-  const outputSrc = path.resolve(process.cwd(), output);
-  try {
-    fs.accessSync(inputSrc, R_OK); 
-  } catch (_err) {
-    exitWithError(`can't access input file at "${inputSrc}", do you have access and the file exists?`);
-  }
-  try {
-    fs.accessSync(outputSrc, W_OK); 
-  } catch (_err) {
-    exitWithError(`can't access output file at "${outputSrc}", do you have access and the file exists?`);
-  }
-  const data = fs.readFileSync(inputSrc, 'utf8');
-  try {
-    const opts = {
-      source: componentGlob,
-      salt: 'default-salt'
-    };
-    const compiled = compile(data, opts);
-    compiled.css.forEach(css => {
-      write(`${outputSrc}/${css.name}.css`, css.code);
-    });
-    compiled.js.forEach(js => {
-      write(`${outputSrc}/${js.name}.js`, js.code);
-    });
-    write(`${outputSrc}/index.html`, compiled.html);
-  } catch (e) {
-    exitWithError(`failed to compile ${e}`);
-  }
-} else {
-  help();
 }
 
 function help() {
@@ -9977,8 +9939,8 @@ function exitWithError(message) {
 }
 
 function write(target, data) {
-  const src = path.resolve(process.cwd(), target);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const src = pathUtil.resolve(process.cwd(), target);
+  fs.mkdirSync(pathUtil.dirname(target), { recursive: true });
   fs.writeFile(target, data, (err) => {
     if (err) {
       exitWithError(err);

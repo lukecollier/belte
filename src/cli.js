@@ -5,7 +5,6 @@ import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
 const {R_OK, W_OK} = constants;
 
 var argv = require('minimist')(process.argv.slice(2));
-console.log(argv);
 
 const [first, ...components] = argv._;
 if (!argv.help && first === 'on' && components.length !== 0) {
@@ -32,6 +31,8 @@ if (!argv.help && first === 'on' && components.length !== 0) {
       exitWithError(`failed to compile ${e}`);
     }
   }
+} else {
+	help();
 }
 
 function canAccessPaths(paths) {
@@ -69,7 +70,7 @@ function present(name) {
 }
 
 function exitWithError(message) {
-  console.log(message);
+  console.log('[error]', message);
   process.exit(1);
 }
 

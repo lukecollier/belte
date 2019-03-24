@@ -47,19 +47,18 @@ output.js contains example of svelte compiled greeting
 ## Roadmap
 ### 1.0 Stablilizing Api
 completing the core working well with needed features 
-- [ ] can get import and resolve node modules code
+- [ ] -can get import and resolve node modules code- (should be handled by build tool)
 - [ ] support multiple frameworks
 - [ ] only update changed components using their names for caching
-- [ ] decrease chance of collision using xxHash encoding for filenames
+- [ ] decrease chance of collision using new hashing function encoding for filenames
 - [ ] parse attributes as numbers and objects not just as strings
 - [ ] debug options, e.g adding component names before hash versioning
-- [ ] namespace component libaries e.g `<one:component></one:compoent><two:comp/>`
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components
 - [ ] support self closing tags e.g ```html <thing/>```
 - [ ] investigate licensing
 - [ ] allow multiple loaders
-- [ ] include cli
+- [x] include cli
 - [ ] quickstart
 - [ ] write guide
 - [ ] sourcemaps and other dev goodies 
@@ -67,7 +66,8 @@ completing the core working well with needed features
 - [ ] slot elements
 - [ ] pass state through component trees
 - [ ] syntax for generating states
-- [ ] make loaders dumb (loaders should expose simple functions for compiling component js, html, css and initializers)
+- [x] make loaders dumb (loaders should expose simple functions for compiling component js, html, css and initializers)
+- [ ] resolve dependencies in core as apposed to in the loader
 
 ### Future Work
 Vague ideas for nice-to-haves.
