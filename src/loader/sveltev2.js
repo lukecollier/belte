@@ -11,7 +11,9 @@ export const render = (src, attr) => {
   return require(src).render(attr).html
 }
 
-export const client = (dir, comp, encode) => {
+export const client = (src, encode) => {
+  const comp = readFileSync(src, 'utf8');
+  const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
 		css: false,	
@@ -27,7 +29,8 @@ export const client = (dir, comp, encode) => {
 	return svelte.compile(comp, options).js.code;
 }
 
-export const style = (data) => {
+export const style = (src) => {
+  const data = readFileSync(src, 'utf8');
 	const options = {
 		generate: 'dom',
 		css: true,	
@@ -69,15 +72,13 @@ export const deps = (src) => {
 		format: 'es'
 	};
 	const code = svelte.compile(data, options).js.code;
-  const dir = pathUtil.dirname(src);
-  return imports(code, dir).map(src => { 
+  return imports(code, pathUtil.dirname(src)).map(src => { 
     return [src, deps(src)].flat()
   }).flat();
 }
 
 export const loader = (src, encode) => {
   const data = readFileSync(src, 'utf8');
-  const dir = pathUtil.dirname(src);
   const name = encode(data);
 
   const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
@@ -85,8 +86,8 @@ export const loader = (src, encode) => {
 
   return {
     render: R.partial(render, [src]),
-    client: R.partial(client, [dir, data, encode]),
-    styles: R.partial(style, [data]),
+    client: R.partial(client, [src, encode]),
+    styles: R.partial(style, [src]),
     constructor: R.partial(constructor, [name]),
     dependencies: compDeps,  
     otherDependencies: otherDeps,  

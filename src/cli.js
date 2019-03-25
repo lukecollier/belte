@@ -26,7 +26,13 @@ if (!argv.help && first === 'on' && components.length !== 0) {
       compiled.js.forEach(js => {
         write(`${target}/${js.name}.js`, js.code)
       });
-      write(`${target}/index.html`, compiled.html)
+      const index = getOptionalAttr('index');
+      if (index.err) {
+        write(`${target}/index.html`, compiled.html)
+      } else {
+        const indexSrc = path.resolve(process.cwd(), index.name);
+        write(indexSrc, compiled.html)
+      }
     } catch (e) {
       exitWithError(`failed to compile ${e}`);
     }
@@ -52,6 +58,17 @@ function tryAccess(src) {
 
 function help() {
   console.log('todo: implement help');
+}
+
+function getOptionalAttr(attr) {
+  const shortName = attr.substring(0,1);
+  if (present(attr)) {
+    return { name: argv[attr] }
+  } else if (present(shortName)) {
+    return { name: argv[shortName] }
+  } else {
+    return { err: `${attr} not given`, name: attr} 
+  }
 }
 
 function getNeededAttr(attr) {

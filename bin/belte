@@ -437,7 +437,9 @@ const render = (src, attr) => {
   return require(src).render(attr).html
 };
 
-const client = (dir, comp, encode) => {
+const client = (src, encode) => {
+  const comp = fs.readFileSync(src, 'utf8');
+  const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
 		css: false,	
@@ -453,7 +455,8 @@ const client = (dir, comp, encode) => {
 	return svelte.compile(comp, options).js.code;
 };
 
-const style = (data) => {
+const style = (src) => {
+  const data = fs.readFileSync(src, 'utf8');
 	const options = {
 		generate: 'dom',
 		css: true,	
@@ -495,15 +498,13 @@ const deps = (src) => {
 		format: 'es'
 	};
 	const code = svelte.compile(data, options).js.code;
-  const dir = pathUtil.dirname(src);
-  return imports(code, dir).map(src => { 
+  return imports(code, pathUtil.dirname(src)).map(src => { 
     return [src, deps(src)].flat()
   }).flat();
 };
 
 const loader = (src, encode) => {
   const data = fs.readFileSync(src, 'utf8');
-  const dir = pathUtil.dirname(src);
   const name = encode(data);
 
   const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
@@ -511,8 +512,8 @@ const loader = (src, encode) => {
 
   return {
     render: partial(render, [src]),
-    client: partial(client, [dir, data, encode]),
-    styles: partial(style, [data]),
+    client: partial(client, [src, encode]),
+    styles: partial(style, [src]),
     constructor: partial(constructor, [name]),
     dependencies: compDeps,  
     otherDependencies: otherDeps,  
@@ -9890,7 +9891,13 @@ if (!argv.help && first === 'on' && components.length !== 0) {
       compiled.js.forEach(js => {
         write(`${target}/${js.name}.js`, js.code);
       });
-      write(`${target}/index.html`, compiled.html);
+      const index = getOptionalAttr('index');
+      if (index.err) {
+        write(`${target}/index.html`, compiled.html);
+      } else {
+        const indexSrc = pathUtil.resolve(process.cwd(), index.name);
+        write(indexSrc, compiled.html);
+      }
     } catch (e) {
       exitWithError(`failed to compile ${e}`);
     }
@@ -9918,6 +9925,17 @@ function help() {
   console.log('todo: implement help');
 }
 
+function getOptionalAttr(attr) {
+  const shortName = attr.substring(0,1);
+  if (present(attr)) {
+    return { name: argv[attr] }
+  } else if (present(shortName)) {
+    return { name: argv[shortName] }
+  } else {
+    return { err: `${attr} not given`, name: attr} 
+  }
+}
+
 function getNeededAttr(attr) {
   const shortName = attr.substring(0,1);
   if (present(attr)) {
@@ -9934,7 +9952,7 @@ function present(name) {
 }
 
 function exitWithError(message) {
-  console.log(message);
+  console.log('[error]', message);
   process.exit(1);
 }
 

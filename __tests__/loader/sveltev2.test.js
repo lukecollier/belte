@@ -11,8 +11,7 @@ const resource = (filename) => {
 
 test('gets first level imports from a file', t => {
   const result = imports(`
-    import test from '../../src/loader/sveltev2.js';
-    `, __dirname);
+		import test from '../../src/loader/sveltev2.js';`, __dirname);
   t.deepEqual(result, ['/Users/collierl/Project/Tinker/belte/src/loader/sveltev2.js']);
 });
 
@@ -25,7 +24,6 @@ test('do not allow node modules', t => {
 
 test('gets svelte dependencies', t => {
   const result = deps(resource('LogicElement.html'));
-
   t.deepEqual(result, [ resource('PlainElement.html') ]);
 });
 

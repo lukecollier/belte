@@ -14,7 +14,6 @@ const opts = {
     '__tests__/resource/svelte/CustomElementOne.html',
     '__tests__/resource/svelte/CustomElementTwo.html',
     '__tests__/resource/svelte/CustomElementThree.html',
-    '__tests__/resource/svelte/ExternalLogicElement.html',
     '__tests__/resource/svelte/LogicElement.html',
     '__tests__/resource/svelte/PlainElement.html',
   ],
