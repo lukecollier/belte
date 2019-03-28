@@ -13,7 +13,7 @@ const opts = {
   salt: 'default-salt'
 };
 
-test('test v2', t => {
+test('can a default compile occur with minimal options', t => {
   const result = compile(`<html><head><title></title></head><body><custom-element name="Luke Collier" count=5 test></custom-element><custom-element name="Luke Collier" count=6 test/></custom-element><logic-element></logic-element></body></html>`, opts);
 
   t.snapshot(result.html);

@@ -1,6 +1,8 @@
 import { compile } from './core.js' 
 import path from 'path';
 import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
+import { loader as sveltev2Loader } from './loader/sveltev2.js';
+import { loader as reactLoader } from './loader/react.js';
 
 const {R_OK, W_OK} = constants;
 
@@ -19,7 +21,11 @@ if (!argv.help && first === 'on' && components.length !== 0) {
         components: components,
         salt: 'default-salt'
       };
-      const compiled = compile(data, opts);
+
+      const loader = getOptionalAttr('loader');
+      const compiled = (loader.err) ? 
+        compile(data, opts) : compile(data, opts, getLoader(loader.name))
+      
       compiled.css.forEach(css => {
         write(`${target}/${css.name}.css`, css.code)
       });
@@ -39,6 +45,14 @@ if (!argv.help && first === 'on' && components.length !== 0) {
   }
 } else {
 	help();
+}
+function getLoader(loader) {
+  switch(loader) {
+    case 'react':
+      return reactLoader;
+    case 'sveltev2':
+      return sveltev2Loader; 
+  }
 }
 
 function canAccessPaths(paths) {

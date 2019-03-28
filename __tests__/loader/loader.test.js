@@ -3,6 +3,7 @@ import test from 'ava';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+import { loader } from '../../src/loader/sveltev2.js';
 import { compile } from '../../src/core.js';
 
 const resource = (filename) => {
@@ -22,24 +23,24 @@ const opts = {
 
 test('can create an single element', t => {
   const data = readFileSync(resource('one-element.template.html'), 'utf8');
-  const result = compile(data, opts);
+  const result = compile(data, opts, loader);
   t.snapshot(result.html);
 });
 
 test('can create elements with attributes', t => {
   const data = readFileSync(resource('two-attributes.template.html'), 'utf8');
-  const result = compile(data, opts);
+  const result = compile(data, opts, loader);
   t.snapshot(result.html);
 });
 
 test('can create multiple custom elements', t => {
   const data = readFileSync(resource('three-multiple.template.html'), 'utf8');
-  const result = compile(data, opts);
+  const result = compile(data, opts, loader);
   t.snapshot(result.html);
 });
 
 test('can create multiple custom elements with args', t => {
   const data = readFileSync(resource('four-multiple-args.template.html'), 'utf8');
-  const result = compile(data, opts);
+  const result = compile(data, opts, loader);
   t.snapshot(result.html);
 });

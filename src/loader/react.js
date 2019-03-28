@@ -1,36 +1,92 @@
 import ReactDOMServer from 'react-dom/server';
-import React, { Component } from 'react';
+import React from 'react';
+import * as R from 'ramda';
+
+import { readFileSync } from 'fs';
+
+const recast = require("recast");
+const { NodePath, builders } = require("ast-types");
+const acorn = require('acorn');
 
 export const render = (src, attr) => {
-	const Component = require(src).default;
+	const Component = require(src);
 	const comp = React.createElement(Component, attr);
 	return ReactDOMServer.renderToString(comp)
 }
 
-export const client = (src, encode) => {
-  const comp = readFileSync(src, 'utf8');
-	// walk the tree, remove imports for react, reactDOm that will be included globally
-	return `React.createElement(HelloMessage, { name: "Taylor" })`
+export const client = (code, name) => {
+  const ast = recast.parse(code, {praser: acorn, sourceType: 'module'});
+  var deps = [];
+  recast.visit(ast, { 
+    visitImportDeclaration: function(path) {
+      path.prune();
+      return false;
+    },
+    visitExportDefaultDeclaration: function (path) {
+      path.replace(`return ${path.value.declaration.name};`);
+      return false;
+    },  
+    visitCallExpression: function (path) {
+      if (path.value.callee 
+        && path.value.callee.name === 'require'
+        && path.value.arguments 
+        && path.value.arguments.length === 1) { // there has to be a better way
+        deps.push(path.parent.value.id.name);
+        path.parent.prune();
+      }
+      return false;
+    },
+    visitAssignmentExpression: function (path) {
+      if (path.value.left 
+        && path.value.left.object 
+        && path.value.left.object.name 
+        && path.value.left.object.name === 'module'){
+        path.replace(`return ${path.value.right.name}`);
+      }
+      return false;
+    }
+  });
+  return `
+    var ${name} = (function(${deps.join(',')}) {
+      ${recast.print(ast).code}
+    })(${deps.join(',')})`.trim();
 }
 
-// way to check if a component is a react component for dependencies
-// Component.prototype 
-// 	&& Component.prototype.isReactComponent 
+const isComponent = (component) => component.prototype 
+  && component.prototype.isReactComponent
+
+export const dependencies = (src) => {
+  const ast = recast.parse(code, {praser: acorn, sourceType: 'module'});
+  var deps = [];
+  var components = [];
+  recast.visit(ast, { 
+    visitCallExpression: function (path) {
+      if (path.value.callee 
+        && path.value.callee.name === 'require'
+        && path.value.arguments 
+        && path.value.arguments.length === 1) { // there has to be a better way
+        deps.push(path.parent.value.id.name);
+      }
+      return false;
+    },
+  });
+  return [...deps, 'ReactDOM'];
+}
+
+export const constructor = (name, id, attr) => `ReactDOM.hydrate(React.createElement(${name}, ${JSON.stringify(attr)}), document.getElementById("${id}"));`;
 
 export const loader = (src, encode) => {
   const data = readFileSync(src, 'utf8');
-  const dir = pathUtil.dirname(src);
-  const name = encode(data);
-
-  const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
-  const otherDeps = () => deps(src).filter(filepath => !filepath.endsWith('.html')); 
+  const name = 'React' + encode(data);
 
   return {
     render: R.partial(render, [src]),
-    client: R.partial(client, [dir, data, encode]),
-    styles: R.partial(style, [data]),
+    client: R.partial(client, [data, name]),
+    styles: () => [],
     constructor: R.partial(constructor, [name]),
-    dependencies: compDeps,  
-    otherDependencies: otherDeps,  
+    dependencies: () => [],
+    otherDependencies: () => [],
   }
 };
+
+export default loader;
