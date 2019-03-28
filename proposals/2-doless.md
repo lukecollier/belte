@@ -37,3 +37,7 @@ function loader(src, { encodeForFilename, encodeForVariableName }) {
 ```
 
 We can then iteratively build each dependency with the plugin list provided by the loader. Rendering is more interesting and may need it's own doless adoption.
+
+
+### Shape of loaders as a dependency manager
+Loaders become code analysis of components vs javascript dependencies the difference being depenencies are resolved with the client aspect of a loader and the dependencies not resolved at all letting your favourite build tool :tm: do the resolving there (as currently works on the svelte loader). 

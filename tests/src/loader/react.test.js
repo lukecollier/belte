@@ -1,8 +1,8 @@
-const loader = require('../../../src/loader/react');
-const path = require('path');
+import { loader } from '../../../src/loader/react';
+import path from 'path';
 
-test('adds 1 + 2 to equal 3', () => {
+test('loader can be loaded', async () => {
   const encoders = {encodeForFilename: (_) => _, encodeForVariableName: (_) => _};
-  const result = loader(path.resolve(__dirname, '../../resource/react/Component.js'), encoders);
-  expect(sum(1, 2)).toMatchSnapshot();
+  const result = loader(path.resolve(__dirname, '../../resource/react/StatefulComponent.jsx'), encoders);
+  expect(await result).toMatchSnapshot();
 });

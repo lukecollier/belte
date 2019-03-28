@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`loader can be loaded 1`] = `
+Object {
+  "dependencies": [Function],
+  "javascript": [Function],
+  "render": [Function],
+  "style": [Function],
+}
+`;
