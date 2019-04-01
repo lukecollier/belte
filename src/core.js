@@ -20,13 +20,6 @@ export const allLoaders = (componentPaths, partialLoader, encode) => {
   }));
 }
 
-export const htmlResolversFromLoaders = (loaders) => {
-  const arr = Array.from(loaders.entries()).map((entry, i) => {
-    return [entry[0], entry[1].render];
-  }); 
-  return Object.assign(...arr.map(d => ({[d[0]]: d[1]})))
-}
-
 const stylesheet = (href) => `<link rel="stylesheet" href="/${href}.css">`
 const script = (src) => `<script defer="true" src="/${src}.js"></script>`
 
@@ -46,18 +39,10 @@ export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
     return result;
   }).flat(); 
 
-  const css = [...refs.keys()].map((name) => {
-    const deps = loaders.get(name).dependencies()
-      .map(dep=>loaders.get(nameFromPath(dep)).styles());
-    const result = [loaders.get(name).styles(), ...deps]
-      .filter(content => content !== null);
-    result.forEach(content => appendToHead(dom, [stylesheet(encode(content))]));
-    return result;
-  }).flat(); 
 
   return {
     html: serialize(dom), 
-    css: css.map(content => ({name: encode(content), code: content})),
+    css: [],
     js: js.map(content => ({name: encode(content), code: content}))
   };
 }

@@ -82,15 +82,13 @@ export const loader = (src, encode) => {
   const name = encode(data);
 
   const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
-  const otherDeps = () => deps(src).filter(filepath => !filepath.endsWith('.html')); 
 
   return {
     render: R.partial(render, [src]),
     client: R.partial(client, [src, encode]),
-    styles: R.partial(style, [src]),
     constructor: R.partial(constructor, [name]),
     dependencies: compDeps,  
-    otherDependencies: otherDeps,  
+    components: compDeps,  
   }
 };
 

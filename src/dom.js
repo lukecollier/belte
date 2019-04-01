@@ -7,7 +7,6 @@ export const isCustomElement = (tagNode) => {
   return !HTML5_ELEMENT_NAMES.includes(tagNode.tagName);
 }
 
-const RESERVED_ATTRIB = ['class', 'style', 'href']
 export const parse = (html) => parse5.parse(html, {scriptingEnabled:false});
 
 export const serialize = (dom) => parse5.serialize(dom);
@@ -23,7 +22,11 @@ const serializeAttribs = (attribs) => {
   return attribs.map(attr => `${attr.name}="${attr.value}"`).join(' ');
 }
 
+// replace with returning a list of { src: '', id: '', data: '' }
+// then will reduce the list afterwards for rendering of javascript to 
+// {src: '' instances: [{id: '', data: ''}, ] iterate on keys (src) and add all dependencies to the head of file with every instance budnled into a constructor file placed directly after
 export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
+  const reservedAttrib = ['class', 'style', 'href']
   const body = dom5.query(dom, (el) => el.tagName === 'body');
   var refs = new Map();
   dom5.queryAll(body, (el) => isCustomElement(el)).forEach((el, i) => {
@@ -31,7 +34,7 @@ export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
     const id = `svelte-component-${i}`;
     var appliedAttribs = [];
     el.attrs.forEach(attr => {
-      if (RESERVED_ATTRIB.includes(attr.name)) {
+      if (reservedAttrib.includes(attr.name)) {
         appliedAttribs.push(attr);
       } else {
         attribs[attr.name] = attr.value
@@ -47,8 +50,7 @@ export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
       const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers[name](attribs)+'</div>', {scriptingEnabled:false});
       dom5.replace(el, newEl);
     } else {
-      const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers.Default(attribs)+'</div>', {scriptingEnabled:false});
-      dom5.replace(el, newEl);
+      dom5.replace(el, `<div><!-- error loading component ${name}--></div>`);
     }
   });
   return refs;
