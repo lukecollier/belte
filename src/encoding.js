@@ -1,4 +1,5 @@
 import Hashids from 'hashids';
+import XXHash from 'xxhash';
 
 const hashAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -15,7 +16,26 @@ const positiveHashCode = (s) => {
   return hashCode(s) & 0xfffffff;
 }
 
+/**
+ * Encodes content to a semi unique id (collisions are too damn high).
+ * @param {string} content - Content of a file to encode.
+ * @param {string} salt - Application specific string for salting hashes 
+ * component.
+ * @returns {string} - An id.
+ */
 export const encodeContent = (content, salt = 'salt',) => {
+  const hashids = new Hashids(salt, 16, hashAlphabet);
+  return hashids.encode(positiveHashCode(content));
+}
+
+export const encodeForFileName = (buff, salt = 'salt',) => {
+  const saltBuff = Buffer.from(salt);
+  const totalLength = buff.length + saltBuff.length;
+  return XXHash.hash(Buffer.concat([buff, saltBuff], totalLength), 0xCAFEBABE);
+
+}
+
+export const encodeForBrowser = (content, salt = 'salt',) => {
   const hashids = new Hashids(salt, 16, hashAlphabet);
   return hashids.encode(positiveHashCode(content));
 }

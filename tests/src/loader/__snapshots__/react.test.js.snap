@@ -3,10 +3,7 @@
 exports[`loader can be loaded 1`] = `
 Object {
   "client": [Function],
-  "components": [Function],
   "constructor": [Function],
-  "dependencies": [Function],
   "render": [Function],
-  "styles": [Function],
 }
 `;

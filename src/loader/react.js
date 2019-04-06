@@ -57,12 +57,16 @@ export async function asyncClient(src, encodeForVariableName) {
 }
 
 export const render = (src, attr) => {
+  console.log(src, attr);
 	const Component = require(src);
 	const comp = React.createElement(Component, attr);
 	return ReactDOMServer.renderToString(comp)
 }
 
-export const constructor = (name, id, attr) => `ReactDOM.hydrate(React.createElement(${name}, ${JSON.stringify(attr)}), document.getElementById("${id}"));`;
+export const constructor = (name, id, attr) => `ReactDOM.hydrate(
+    React.createElement(${name}, ${JSON.stringify(attr)}), 
+    document.getElementById("${id}")
+  );`;
 
 export const client = (code, name, encode) => {
   const ast = recast.parse(code, {praser: acorn, sourceType: 'module'});
@@ -76,8 +80,7 @@ export const client = (code, name, encode) => {
       return false;
     }  
   });
-  return `
-    var ${name} = (function(${deps.join(',')}) {
+  return `var ${name} = (function(${deps.join(',')}) {
       ${recast.print(ast).code}
     })(${deps.join(',')})
   `.trim();
@@ -107,9 +110,6 @@ export const loader = (src, encode) => {
   return {
     render: R.partial(render, [src]),
     client: R.partial(client, [dir, data, encode]),
-    styles: () => [],
     constructor: R.partial(constructor, [name]),
-    dependencies: () => R.partial(imports, [data, dir]),  
-    components: () => R.partial(imports, [data, dir]),
   }
-};
+}
