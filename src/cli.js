@@ -1,7 +1,6 @@
 import { compile } from './core.js' 
 import path from 'path';
 import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
-import { loader as sveltev2Loader } from './loader/sveltev2.js';
 
 const {R_OK, W_OK} = constants;
 
@@ -23,7 +22,7 @@ if (!argv.help && first === 'on' && components.length !== 0) {
 
       const loader = getOptionalAttr('loader');
       const compiled = (loader.err) ? 
-        compile(data, opts) : compile(data, opts, getLoader(loader.name))
+        compile(data, opts, require('./loader/react.js')) : compile(data, opts, getLoader(loader.name))
       
       compiled.css.forEach(css => {
         write(`${target}/${css.name}.css`, css.code)
@@ -47,8 +46,8 @@ if (!argv.help && first === 'on' && components.length !== 0) {
 }
 function getLoader(loader) {
   switch(loader) {
-    case 'sveltev2':
-      return sveltev2Loader; 
+    case 'react':
+      return require('./loader/react.js'); 
     default:
       exitWithError(`loader not supported yet`);
   }

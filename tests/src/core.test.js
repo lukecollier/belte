@@ -1,4 +1,4 @@
-import { resolveSources, compile } from '../../src/core';
+import { resolveSources, compile, aliasFromSource } from '../../src/core';
 import { readFileSync } from 'fs'; 
 import pathUtil from 'path';
 
@@ -17,7 +17,17 @@ test('can resolve multiple sources to an object with name from camel case', () =
   expect(result).toEqual({'file-name': 'fake/path/to/FileName.js', 'file-name-two': './FileNameTwo.js'});
 });
 
-test('can render a react component', () => {
+test('gives a best guess for the alias of the source', () => {
+  const result = aliasFromSource('alias/to/path/index.js');
+  expect(result).toBe('path');
+});
+
+test('gives a best guess for the alias of the source', () => {
+  const result = aliasFromSource('alias/to/path.js');
+  expect(result).toBe('alias/to/path.js');
+});
+
+test('can render a react component', async () => {
   const comp = pathUtil.resolve(__dirname, '../resource/react/BelteSingular.jsx');
   const opts = {
     components: [comp],
@@ -28,5 +38,5 @@ test('can render a react component', () => {
     readFileSync(path, 'utf8'), 
     opts, require('../../src/loader/react')); 
 
-  expect(result).toMatchSnapshot();
+  expect(await result).toMatchSnapshot();
 });

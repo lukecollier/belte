@@ -1,5 +1,5 @@
 import Hashids from 'hashids';
-import XXHash from 'xxhash';
+// import XXHash from 'xxhash';
 
 const hashAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -29,9 +29,11 @@ export const encodeContent = (content, salt = 'salt',) => {
 }
 
 export const encodeForFileName = (buff, salt = 'salt',) => {
-  const saltBuff = Buffer.from(salt);
-  const totalLength = buff.length + saltBuff.length;
-  return XXHash.hash(Buffer.concat([buff, saltBuff], totalLength), 0xCAFEBABE);
+  // const saltBuff = Buffer.from(salt);
+  // const totalLength = buff.length + saltBuff.length;
+  // return XXHash.hash(Buffer.concat([buff, saltBuff], totalLength), 0xCAFEBABE);
+  const hashids = new Hashids(salt, 16, hashAlphabet);
+  return hashids.encode(positiveHashCode(buff.toString()));
 
 }
 

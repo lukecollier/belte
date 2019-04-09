@@ -1,6 +1,7 @@
-import * as R from 'ramda';
-import dependencyTree from 'dependency-tree';
+import {keys} from 'ramda';
+// import dependencyTree from 'dependency-tree';
 import pathUtil from 'path';
+
 
 /**
  * Resolves an component file using the relevent loader cyclically will generate
@@ -10,13 +11,28 @@ import pathUtil from 'path';
  * component.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
+// todo replace with new way to resolve dependencies that returns {alias, src}  
+// this has become priority number one as the package dependency-tree seems to have some minor issues with rollup
 export const resolve = (src, filter) => {
-  return dependencyTree.toList({
-    filename: src,
-    directory: pathUtil.dirname(src),
-    nodeModulesConfig: {
-      entry: 'module'
-    },
-    filter: filter,
-  });
+  // return dependencyTree.toList({
+  //   filename: src,
+  //   directory: pathUtil.dirname(src),
+  //   nodeModulesConfig: {
+  //     entry: 'module'
+  //   },
+  //   filter: filter,
+  // });
+  return []
+}
+
+export const resolveFirstDepth = (src, filter) => {
+  // return keys(dependencyTree({
+  //   filename: src,
+  //   directory: pathUtil.dirname(src),
+  //   nodeModulesConfig: {
+  //     entry: 'module'
+  //   },
+  //   filter: filter,
+  // })[src]);
+  return []
 }

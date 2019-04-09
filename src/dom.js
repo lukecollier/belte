@@ -1,5 +1,5 @@
 import parse5 from 'parse5';
-import { reduce, assoc, filter, clone, not, pick, omit, isNil, partial, mapObjIndexed, toPairs, is, pipe } from 'ramda';
+import { reduce, assoc, clone, pick, omit, toPairs, is, pipe } from 'ramda';
 import * as dom5 from 'dom5';
 
 const HTML5_ELEMENT_NAMES = ['html', 'div', 'base', 'head', 'link', 'meta', 'style', 'title', 'body', 'address', 'article', 'aside', 'footer', 'header', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'main', 'nav', 'section', 'blockquote', 'dd', 'dir', 'dl', 'dt', 'figcaption', 'figure', 'hr', 'li', 'main', 'ol', 'p', 'pre', 'ul', 'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd', 'mark', 'q', 'rb', 'rtc', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup','time', 'u', 'var', 'wbr', 'area', 'audio', 'img', 'map', 'track', 'video', 'applet', 'embed', 'iframe', 'noembed', 'object', 'param', 'picture', 'source', 'canvas', 'noscript', 'script', 'del', 'ins', 'caption', 'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'button', 'datalist', 'fieldset', 'form', 'input', 'label', 'legend', 'meter', 'optgroup', 'option', 'output', 'progress', 'select', 'textarea', 'details', 'dialog', 'menu', 'menuitem', 'summary', 'content', 'element', 'shadow', 'slot', 'template'];
@@ -14,7 +14,7 @@ export const serialize = (dom) => parse5.serialize(dom);
 export const appendToHead = (dom, headElements) => {
   const rendered = clone(dom);
   const headSet = new Set(headElements);
-  const head = dom5.query(dom, (el) => el.tagName === 'head');
+  const head = dom5.query(rendered, (el) => el.tagName === 'head');
   headSet.forEach(elementHtml => 
     dom5.append(head, parse5.parseFragment(elementHtml, {scriptingEnabled:false}))
   );
