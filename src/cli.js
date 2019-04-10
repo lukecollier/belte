@@ -1,6 +1,11 @@
 import { compile } from './core.js' 
 import path from 'path';
 import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
+import { forEachObjIndexed } from 'ramda';
+
+// our basic loaders for svelte 2 and react
+import * as react from './loader/react.js'; 
+import * as sveltev2 from './loader/sveltev2.js'; 
 
 const {R_OK, W_OK} = constants;
 
@@ -16,27 +21,12 @@ if (!argv.help && first === 'on' && components.length !== 0) {
     const data = readFileSync(templateSrc, 'utf8');
     try {
       const opts = {
-        components: components,
+        components: components.map(src => path.resolve(process.cwd(), src)),
         salt: 'default-salt'
       };
 
       const loader = getOptionalAttr('loader');
-      const compiled = (loader.err) ? 
-        compile(data, opts, require('./loader/react.js')) : compile(data, opts, getLoader(loader.name))
-      
-      compiled.css.forEach(css => {
-        write(`${target}/${css.name}.css`, css.code)
-      });
-      compiled.js.forEach(js => {
-        write(`${target}/${js.name}.js`, js.code)
-      });
-      const index = getOptionalAttr('index');
-      if (index.err) {
-        write(`${target}/index.html`, compiled.html)
-      } else {
-        const indexSrc = path.resolve(process.cwd(), index.name);
-        write(indexSrc, compiled.html)
-      }
+      const { js, html } = compileIt(loader,data, opts, target);
     } catch (e) {
       exitWithError(`failed to compile ${e}`);
     }
@@ -44,10 +34,31 @@ if (!argv.help && first === 'on' && components.length !== 0) {
 } else {
 	help();
 }
+
+async function compileIt (loader, data, opts, target) {
+  const compiled = (loader.err) ? 
+    compile(data, opts, react) : compile(data, opts, getLoader(loader.name))
+  compiled.then(result => {
+    forEachObjIndexed((code, key)=>{
+      write(`${target}/${key}.js`, code);
+    }, result.js);
+    const index = getOptionalAttr('index');
+    if (index.err) {
+      write(`${target}/index.html`, result.html)
+    } else {
+      const indexSrc = path.resolve(process.cwd(), index.name);
+      write(indexSrc, result.html)
+    }
+  });
+}
+
+
 function getLoader(loader) {
   switch(loader) {
     case 'react':
-      return require('./loader/react.js'); 
+      return react; 
+    case 'sveltev2':
+      return sveltev2; 
     default:
       exitWithError(`loader not supported yet`);
   }

@@ -1,7 +1,7 @@
 import React from 'react';
 import Component from './Component.jsx';
 
-class Component extends React.Component {
+class ComponentTwo extends React.Component {
   render() {
     return (
       <div>
@@ -10,5 +10,5 @@ class Component extends React.Component {
     );
   }
 }
-export default Component;
+export default ComponentTwo;
 

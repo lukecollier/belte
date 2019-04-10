@@ -7,19 +7,10 @@ import sucrase from 'rollup-plugin-sucrase';
 import { readFileSync } from 'fs';
 import * as pathUtil from 'path';
 import isReact from 'is-react';
-
 import { nameFromPath } from '../string.js';
 import { walk } from 'estree-walker';
-const acorn = require("acorn").Parser.extend(require("acorn-jsx")());
 
-// dependency package now handles dependencies from an output file,
-// client (renamed build) - now builds the client to esm standard preffered takes any source
-// dependencies - done in core 
-// render - same
-// constructor - same
-// otherDependencies - done in core 
-// styles - out of scope for now
-
+require("sucrase/register");
 
 export const render = (src, attr) => {
 	const Component = require(src);
@@ -27,10 +18,12 @@ export const render = (src, attr) => {
 	return ReactDOMServer.renderToString(comp)
 }
 
-export const constructor = (name, id, attr) => `ReactDOM.hydrate(
-    React.createElement(${name}, ${JSON.stringify(attr)}), 
+export const constructor = (name, id, attr, libraries) => 
+  `${libraries["react-dom"]}.hydrate(
+    ${libraries["react"]}.createElement(${name}, ${JSON.stringify(attr)}), 
     document.getElementById("${id}")
-  );`;
+  );`; // need to find a way to compile this with global exports... this will allow the `import ReactDOM from "react-dom"` or `import React from "react"`
+
 
 export const client = (buffer) => {
   return buffer.toString('utf8'); 

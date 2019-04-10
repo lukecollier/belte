@@ -1,11 +1,11 @@
-import { partialRight, map, fromPairs, pipe, flatten, uniq, assoc, reduce, zipWith, keys } from 'ramda';
+import { partialRight, map, fromPairs, pipe, flatten, uniq, assoc, reduce, zipWith, keys, reverse } from 'ramda';
 
 import fs from 'fs';
 import util from 'util';
 import pathUtil from 'path';
 
 import { encodeForFileName } from './encoding';
-import { resolve, resolveFirstDepth } from './dependency';
+import { resolve, imports } from './dependency';
 import * as DOM from './dom';
 import { hypenCaseFromPath, filenameFromPath } from './string';
 
@@ -37,7 +37,7 @@ export async function compileChunk(src, external, globals, name) {
     external: (_) => external,
     treeshake: true,
     plugins: [ 
-      commonjs(({include: 'node_modules/**'})),
+      commonjs(({ include: 'node_modules/**' })),
       nodeResolve(),
       sucrase({
         exclude: ['node_modules/**'],
@@ -46,8 +46,9 @@ export async function compileChunk(src, external, globals, name) {
     ],
   }
   const outputOptions = {
-    sourcemap: false, // should depend on if it's prod or not
+    sourcemap: false, // should depend on if it's prod or not and be named accordingly
     format: 'iife',
+    banner: `var process = {env: {NODE_ENV: "${process.env.NODE_ENV}"}};`, // todo replace this with a permenent solution
     name: name,
     globals: globals,
     file: src,
@@ -67,11 +68,10 @@ export async function compile(html, opts = defaultOpts, loader) {
   const dom = DOM.parse(html);
   const resolveSrc = resolveSources(opts.components)
 
-  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent)), 
-    flatten, uniq)(DOM.customElements(dom)); // complete list of unique javascripts
+  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent)), flatten, uniq,reverse)(DOM.customElements(dom)); 
   const contents = map(util.promisify(fs.readFile), sources);
 
-  const otherSources = map((src) => resolveFirstDepth(src, loader.isLogic), sources).flat();
+  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic), sources).flat());
   const otherContents = map(util.promisify(fs.readFile), otherSources);
 
   const encodeFile = partialRight(encodeForFileName, [opts.salt]);
@@ -94,21 +94,21 @@ export async function compile(html, opts = defaultOpts, loader) {
     await Promise.all(nonCompsFiles)).flat();
   const componentsObj = map((content) => 
     ({ name: `${loader.name}.${encodeFile(Buffer.from(content))}`, 
-      code: loader.client(content) }), 
+      code: loader.client(content,globals) }), 
     await Promise.all(compsFiles)).flat()
 
   // todo make this more concise and pull multiple construcotrs into the same script
   const sourceMap = reduce((acc, {src, id}) => assoc(src, id, acc), {}, [...raw, ...otherRaw]);
   const constructors = map((el) => assoc('name', sourceMap[resolveSrc[el.name]], el), DOM.customElements(dom));
   const constructorsObj = map(({id, attr, name}) => ({
-    name: encodeFile(Buffer.from(loader.constructor(name, id, attr))), 
-    code: loader.constructor(name, id, attr)}), constructors);
-  // add javascripts names to head
+    name: encodeFile(Buffer.from(loader.constructor(name, id, attr, globals))), 
+    code: loader.constructor(name, id, attr, globals)}), constructors);
+
   const result = reduce((acc, {name, code}) => assoc(name, code, acc), {}, 
     [...scriptsObj, ...componentsObj, ...constructorsObj]);
 
   const rendered = DOM.replaceWith(dom, loader.render, resolveSrc);
-  const headUpdated = DOM.appendToHead(rendered, map(script,keys(result)))
+  const headUpdated = DOM.appendToHead(rendered, map(script, keys(result)))
   return {
     html: DOM.serialize(headUpdated), 
     css: [],

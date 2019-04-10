@@ -6,7 +6,7 @@ Object {
   "css": Array [],
   "html": "<html><head>
     <title>Belte</title>
-  <script defer=\\"true\\" src=\\"/BelteLogic.3814119818778577235.js\\"></script><script defer=\\"true\\" src=\\"/BelteLogic.17544478413852981172.js\\"></script><script defer=\\"true\\" src=\\"/React.5417392450803436673.js\\"></script><script defer=\\"true\\" src=\\"/12383040757374808508.js\\"></script></head>
+  <script defer=\\"true\\" src=\\"/BelteLogic.l8b5p2E8yg8QR4y7.js\\"></script><script defer=\\"true\\" src=\\"/BelteLogic.kE5LWkXr4noRBjrd.js\\"></script><script defer=\\"true\\" src=\\"/React.3KNVWXe3DarXR9DE.js\\"></script><script defer=\\"true\\" src=\\"/n5ZbWLDjXyq2Wjkz.js\\"></script></head>
   <body>
     
       <div id=\\"belte-component-0\\">
@@ -16,11 +16,7 @@ Object {
 
 </body></html>",
   "js": Object {
-    "12383040757374808508": "ReactDOM.hydrate(
-    React.createElement(BelteComponent14937260243259965028, {}), 
-    document.getElementById(\\"belte-component-0\\")
-  );",
-    "BelteLogic.17544478413852981172": "var BelteLogic7536408861250408567 = (function () {
+    "BelteLogic.kE5LWkXr4noRBjrd": "var BelteLogicj32Jwm8PbarEp7qv = (function () {
 	'use strict';
 
 	function createCommonjsModule(fn, module) {
@@ -2093,13 +2089,13 @@ Object {
 
 }());
 ",
-    "BelteLogic.3814119818778577235": "var BelteLogic11434846147366665626 = (function () {
+    "BelteLogic.l8b5p2E8yg8QR4y7": "var BelteLogic8mKvpzgmDemw5dJj = (function () {
 	'use strict';
 
-	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 	function unwrapExports (x) {
-		return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x.default : x;
+		return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 	}
 
 	function createCommonjsModule(fn, module) {
@@ -25953,7 +25949,7 @@ Object {
 
 }());
 ",
-    "React.5417392450803436673": "var BelteComponent14937260243259965028 = (function (reactDom, React) {
+    "React.3KNVWXe3DarXR9DE": "var BelteComponentNvP3RPaxy5LKpn9r = (function (reactDom, React) {
   'use strict';
 
   reactDom = reactDom && reactDom.hasOwnProperty('default') ? reactDom['default'] : reactDom;
@@ -25972,8 +25968,12 @@ Object {
 
   return Component;
 
-}(BelteLogic11434846147366665626, BelteLogic7536408861250408567));
+}(BelteLogic8mKvpzgmDemw5dJj, BelteLogicj32Jwm8PbarEp7qv));
 ",
+    "n5ZbWLDjXyq2Wjkz": "ReactDOM.hydrate(
+    React.createElement(BelteComponentNvP3RPaxy5LKpn9r, {}), 
+    document.getElementById(\\"belte-component-0\\")
+  );",
   },
 }
 `;

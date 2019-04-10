@@ -11,20 +11,17 @@ export const render = (src, attr) => {
   return require(src).render(attr).html
 }
 
-export const client = (src, encode) => {
+export const client = (src, globals) => {
   const comp = readFileSync(src, 'utf8');
   const dir = pathUtil.dirname(src);
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: 'Svelte' + encode(comp),
-    filename: 'Svelte' + encode(comp) + '.js',
+    name: globals[src],
+    filename: src,
 		format: 'iife',
-    globals: (relPath) => {
-      const data = readFileSync(pathUtil.resolve(dir, relPath), 'utf8');
-      return 'Svelte' + encode(data);
-    }
+    globals: (relPath) => globals[relPath]
 	};
 	return svelte.compile(comp, options).js.code;
 }
@@ -40,56 +37,10 @@ export const style = (src) => {
 }
 
 export const constructor = (name, id, attr) => 
-  `new ${"Svelte" + name}({target:document.getElementById('${id}'),hydrate:true,data:${JSON.stringify(attr)}});`;
+  `new ${name}({target:document.getElementById('${id}'),hydrate:true,data:${JSON.stringify(attr)}});`;
 
-const builtins = require("module").builtinModules;
-export const imports = (code, dir) => {
-  var deps = new Set();
-  walk(acorn.parse(code, {sourceType: 'module'}), {
-    enter: ( node, parent ) => {
-      if (node.type === 'ImportDeclaration') {
-        const source =  node.source.value.toString();
-        if (source.endsWith('.html')) {
-          deps.add(pathUtil.resolve(dir, source));
-        } else if (!builtins.includes(source)) {
-          const path = pathUtil.resolve(dir, source)
-          deps.add(require.resolve(path));
-        } else {
-          throw Error('Module does not exist or is a node module');
-        }
-      }
-    },
-    leave: ( node, parent ) => {}
-  });
-  return Array.from(deps);
-}
+export const name = 'SvelteV2';
 
-export const deps = (src) => {
-  const data = readFileSync(src, 'utf8');
-	const options = {
-		generate: 'dom',
-		css: false,	
-		format: 'es'
-	};
-	const code = svelte.compile(data, options).js.code;
-  return imports(code, pathUtil.dirname(src)).map(src => { 
-    return [src, deps(src)].flat()
-  }).flat();
-}
+export const isComponent = (src) => src.endsWith('.html');
 
-export const loader = (src, encode) => {
-  const data = readFileSync(src, 'utf8');
-  const name = encode(data);
-
-  const compDeps = () => deps(src).filter(filepath => filepath.endsWith('.html')); 
-
-  return {
-    render: R.partial(render, [src]),
-    client: R.partial(client, [src, encode]),
-    constructor: R.partial(constructor, [name]),
-    dependencies: compDeps,  
-    components: compDeps,  
-  }
-};
-
-export default loader;
+export const isLogic = (src) => !isComponent(src);

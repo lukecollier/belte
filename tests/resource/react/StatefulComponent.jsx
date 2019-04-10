@@ -1,5 +1,4 @@
 import React from 'react';
-import ComponentTwo from './ComponentTwo.jsx';
 
 class Timer extends React.Component {
   constructor(props) {
