@@ -1,6 +1,6 @@
 {
   "name": "belte",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "strap on your components",
   "main": "lib/index.cjs.js",
   "module": "lib/index.umd.js",
