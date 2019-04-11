@@ -1,96 +1,38 @@
 import ReactDOMServer from 'react-dom/server';
-import React from 'react';
+import React, { Component } from 'react';
+import * as rollup from 'rollup';
 import * as R from 'ramda';
-
+import commonjs from 'rollup-plugin-commonjs';
+import sucrase from 'rollup-plugin-sucrase';
 import { readFileSync } from 'fs';
+import * as pathUtil from 'path';
+import isReact from 'is-react';
+import { nameFromPath } from '../string.js';
+import { walk } from 'estree-walker';
 
-const recast = require("recast");
-const { NodePath, builders } = require("ast-types");
-const acorn = require('acorn');
-const rollup = require('rollup');
+require("sucrase/register");
 
 export const render = (src, attr) => {
 	const Component = require(src);
-	const comp = React.createElement(Component, attr);
+	const comp = React.createElement(Component.default, attr);
 	return ReactDOMServer.renderToString(comp)
 }
 
-export const client = (code, name) => {
-  const ast = recast.parse(code, {praser: acorn, sourceType: 'module'});
-  var deps = [];
-  recast.visit(ast, { 
-    visitImportDeclaration: function(path) {
-      path.prune();
-      return false;
-    },
-    visitExportDefaultDeclaration: function (path) {
-      path.replace(`return ${path.value.declaration.name};`);
-      return false;
-    },  
-    visitCallExpression: function (path) {
-      if (path.value.callee 
-        && path.value.callee.name === 'require'
-        && path.value.arguments 
-        && path.value.arguments.length === 1) { // there has to be a better way
-        deps.push(path.parent.value.id.name);
-        path.parent.prune();
-      }
-      return false;
-    },
-    visitAssignmentExpression: function (path) {
-      if (path.value.left 
-        && path.value.left.object 
-        && path.value.left.object.name 
-        && path.value.left.object.name === 'module'){
-        path.replace(`return ${path.value.right.name}`);
-      }
-      return false;
-    }
-  });
-  return `
-    var ${name} = (function(${deps.join(',')}) {
-      ${recast.print(ast).code}
-    })(${deps.join(',')})`.trim();
+export const constructor = (name, id, attr, libraries) => 
+  `${libraries["react-dom"]}.hydrate(
+    ${libraries["react"]}.createElement(${name}, ${JSON.stringify(attr)}), 
+    document.getElementById("${id}")
+  );`; // need to find a way to compile this with global exports... this will allow the `import ReactDOM from "react-dom"` or `import React from "react"`
+
+
+export const client = (buffer) => {
+  return buffer.toString('utf8'); 
 }
 
-const isComponent = (component) => component.prototype 
-  && component.prototype.isReactComponent
+export const name = 'React';
 
-export const dependencies = (src) => {
-  const ast = recast.parse(code, {praser: acorn, sourceType: 'module'});
-  var deps = [];
-  var components = [];
-  recast.visit(ast, { 
-    visitCallExpression: function (path) {
-      if (path.value.callee 
-        && path.value.callee.name === 'require'
-        && path.value.arguments 
-        && path.value.arguments.length === 1) { // there has to be a better way
-        deps.push(path.parent.value.id.name);
-      }
-      return false;
-    },
-  });
-  return [...deps, 'ReactDOM'];
-}
+export const isComponent = (src) => 
+  isReact.component(require(src).default);
 
-export const constructor = (name, id, attr) => `ReactDOM.hydrate(React.createElement(${name}, ${JSON.stringify(attr)}), document.getElementById("${id}"));`;
-
-// way to check if a component is a react component for dependencies
-// Component.prototype 
-// 	&& Component.prototype.isReactComponent 
-export const loader = (src, encode) => {
-  const data = readFileSync(src, 'utf8');
-  const name = 'React' + encode(data);
-
-  return {
-    render: R.partial(render, [src]),
-    client: R.partial(client, [data, name]),
-    styles: () => [],
-    constructor: R.partial(constructor, [name]),
-    dependencies: () => [],
-    otherDependencies: () => [],
-  }
-};
-
-export default loader;
+export const isLogic = (src) => 
+  !isReact.component(require(src).default);

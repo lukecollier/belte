@@ -1,55 +1,54 @@
 import parse5 from 'parse5';
+import { reduce, assoc, clone, pick, omit, toPairs, is, pipe } from 'ramda';
 import * as dom5 from 'dom5';
-import { hyphenCaseToTitleCase } from './string.js';
 
 const HTML5_ELEMENT_NAMES = ['html', 'div', 'base', 'head', 'link', 'meta', 'style', 'title', 'body', 'address', 'article', 'aside', 'footer', 'header', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'main', 'nav', 'section', 'blockquote', 'dd', 'dir', 'dl', 'dt', 'figcaption', 'figure', 'hr', 'li', 'main', 'ol', 'p', 'pre', 'ul', 'a', 'abbr', 'b', 'bdi', 'bdo', 'br', 'cite', 'code', 'data', 'dfn', 'em', 'i', 'kbd', 'mark', 'q', 'rb', 'rtc', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup','time', 'u', 'var', 'wbr', 'area', 'audio', 'img', 'map', 'track', 'video', 'applet', 'embed', 'iframe', 'noembed', 'object', 'param', 'picture', 'source', 'canvas', 'noscript', 'script', 'del', 'ins', 'caption', 'col', 'colgroup', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'button', 'datalist', 'fieldset', 'form', 'input', 'label', 'legend', 'meter', 'optgroup', 'option', 'output', 'progress', 'select', 'textarea', 'details', 'dialog', 'menu', 'menuitem', 'summary', 'content', 'element', 'shadow', 'slot', 'template'];
 export const isCustomElement = (tagNode) => {
   return !HTML5_ELEMENT_NAMES.includes(tagNode.tagName);
 }
 
-const RESERVED_ATTRIB = ['class', 'style', 'href']
 export const parse = (html) => parse5.parse(html, {scriptingEnabled:false});
 
 export const serialize = (dom) => parse5.serialize(dom);
 
-export const appendToHead = (dom, headElements = []) => {
+export const appendToHead = (dom, headElements) => {
+  const rendered = clone(dom);
   const headSet = new Set(headElements);
-  const head = dom5.query(dom, (el) => el.tagName === 'head');
+  const head = dom5.query(rendered, (el) => el.tagName === 'head');
   headSet.forEach(elementHtml => 
-    dom5.append(head, parse5.parseFragment(elementHtml, {scriptingEnabled:false})));
+    dom5.append(head, parse5.parseFragment(elementHtml, {scriptingEnabled:false}))
+  );
+  return rendered;
 }
 
-const serializeAttribs = (attribs) => {
-  return attribs.map(attr => `${attr.name}="${attr.value}"`).join(' ');
-}
+const serializeAttribs = 
+  pipe(toPairs, reduce((acc, [name, value]) => `${acc}${name}="${value}"`,''));
 
-export const domRefs = (dom, resolvers = {Default: (attr) => ''}) => {
-  const body = dom5.query(dom, (el) => el.tagName === 'body');
-  var refs = new Map();
+const id = (num) => `belte-component-${num}`; 
+
+const assocNameValue = (acc, {name, value}) => assoc(name, value, acc);
+
+export const replaceWith = (dom, render, resolveSrc) => {
+  const rendered = clone(dom);
+  const reservedAttrs = ['class', 'style', 'href']
+  const body = dom5.query(rendered, (el) => el.tagName === 'body');
   dom5.queryAll(body, (el) => isCustomElement(el)).forEach((el, i) => {
-    const attribs = {};
-    const id = `svelte-component-${i}`;
-    var appliedAttribs = [];
-    el.attrs.forEach(attr => {
-      if (RESERVED_ATTRIB.includes(attr.name)) {
-        appliedAttribs.push(attr);
-      } else {
-        attribs[attr.name] = attr.value
-      }
-    });
-    const name = hyphenCaseToTitleCase(el.tagName);
-    if (refs.has(name)) {
-      refs.set(name, [...refs.get(name), {id: id, attr: attribs}]);
-    } else {
-      refs.set(name, [{id: id, attr: attribs}]);
-    }
-    if (name in resolvers) {
-      const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers[name](attribs)+'</div>', {scriptingEnabled:false});
-      dom5.replace(el, newEl);
-    } else {
-      const newEl = parse5.parseFragment(`<div id="${id}" ${serializeAttribs(appliedAttribs)}>`+resolvers.Default(attribs)+'</div>', {scriptingEnabled:false});
-      dom5.replace(el, newEl);
-    }
+    const attrs = reduce(assocNameValue, {}, el.attrs);
+    const htmlAttrs = pick(reservedAttrs, attrs);
+    const props = omit(reservedAttrs, attrs);
+    const newEl = parse5.parseFragment(`
+      <div id="${id(i)}" ${serializeAttribs(htmlAttrs)}>
+        ${render(resolveSrc[el.tagName], props)}
+      </div>`, { scriptingEnabled: false });
+    dom5.replace(el, newEl);
   });
-  return refs;
+  return rendered;
+}
+
+export const customElements = (dom) => {
+  const body = dom5.query(dom, (el) => el.tagName === 'body');
+  return dom5.queryAll(body, (el) => isCustomElement(el)).map((el, i) => {
+    const attribs = reduce(assocNameValue, {}, el.attrs);
+    return {id: id(i), attr: attribs, name: el.tagName}
+  });
 }

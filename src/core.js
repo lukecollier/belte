@@ -1,65 +1,138 @@
-import * as R from 'ramda';
+import { partialRight, map, fromPairs, pipe, flatten, uniq, assoc, reduce, zipWith, keys, reverse } from 'ramda';
 
 import fs from 'fs';
+import util from 'util';
 import pathUtil from 'path';
 
-import { loader as defaultLoader } from './loader/sveltev2.js';
-import { nameFromPath } from './string.js';
-import { encodeContent } from './encoding.js';
-import { domRefs, appendToHead, parse, serialize } from './dom.js';
+import { encodeForFileName } from './encoding';
+import { resolve, imports } from './dependency';
+import * as DOM from './dom';
+import { hypenCaseFromPath, filenameFromPath } from './string';
+
+import * as rollup from 'rollup';
+import sucrase from 'rollup-plugin-sucrase';
+import commonjs from 'rollup-plugin-commonjs';
+import nodeResolve from 'rollup-plugin-node-resolve';
+import * as filesize from 'filesize';
 
 const defaultOpts = {
   components: [],
   salt: 'default-salt'
 };
 
-export const allLoaders = (componentPaths, partialLoader, encode) => {
-  return new Map(componentPaths.map(path => {
-    const src = pathUtil.resolve(process.cwd(), path);  
-    return [ nameFromPath(path), partialLoader(src, encode) ];
-  }));
+export function aliasFromSource(src) {
+  const filename = filenameFromPath(src);
+  if (filename === 'index.js') {
+    const index = src.lastIndexOf('/index.js');
+    const slash = src.substring(0,index).lastIndexOf('/');
+    return src.substring(slash+1, index);
+  } else {
+    return src;
+  }
 }
 
-export const htmlResolversFromLoaders = (loaders) => {
-  const arr = Array.from(loaders.entries()).map((entry, i) => {
-    return [entry[0], entry[1].render];
-  }); 
-  return Object.assign(...arr.map(d => ({[d[0]]: d[1]})))
+// 1. new plan is to also output an index bundle which ties everything together, allowing rollup to decide if we should chunk
+// 2. rollup can do the chunking more effectively this greatly simplifies things
+// 3. we can then compile them again into iife's with globals
+
+export async function compileChunk(src, external, globals, name) {
+  const inputOptions = {
+    input: src,
+    external: (_) => external,
+    treeshake: true,
+    plugins: [ 
+      commonjs(({ include: 'node_modules/**' })),
+      nodeResolve(),
+      sucrase({
+        exclude: ['node_modules/**'],
+        transforms: ['jsx']
+      })
+    ],
+  }
+  const outputOptions = {
+    sourcemap: false, // should depend on if it's prod or not and be named accordingly
+    format: 'iife',
+    banner: `var process = {env: {NODE_ENV: "${process.env.NODE_ENV}"}};`, // todo replace this with a permenent solution
+    name: name,
+    globals: globals,
+    file: src,
+  }
+  return rollup.rollup(inputOptions)
+    .then((bundle) => bundle.generate(outputOptions))
+    .then((value) => value.output[0].code);
 }
+
+export const resolveSources = 
+  pipe(map((src) => [hypenCaseFromPath(src), src]), fromPairs);
 
 const stylesheet = (href) => `<link rel="stylesheet" href="/${href}.css">`
 const script = (src) => `<script defer="true" src="/${src}.js"></script>`
 
-export const compile = (html, opts = defaultOpts, loader = defaultLoader) => {
-  const encode = R.partialRight(encodeContent, [opts.salt]);
-  const dom = parse(html);
-  const loaders = allLoaders(opts.components, loader, encode);
-  const refs = domRefs(dom, htmlResolversFromLoaders(loaders));
-  
-  const js = [...refs.entries()].map(([name, ...instances]) => {
-    const constructors = instances.flat()
-      .map(instance => loaders.get(name).constructor(instance.id, instance.attr));
-    const deps = loaders.get(name).dependencies()
-      .map(dep=>loaders.get(nameFromPath(dep)).client());
-    const result = [...deps, loaders.get(name).client(), ...constructors];
-    result.forEach(content => appendToHead(dom, [script(encode(content))]));
-    return result;
-  }).flat(); 
+export async function compile(html, opts = defaultOpts, loader) {
+  const dom = DOM.parse(html);
+  const resolveSrc = resolveSources(opts.components)
+  // todo only read files once as a buffer apply transforms then carry on
 
-  const css = [...refs.keys()].map((name) => {
-    const deps = loaders.get(name).dependencies()
-      .map(dep=>loaders.get(nameFromPath(dep)).styles());
-    const result = [loaders.get(name).styles(), ...deps]
-      .filter(content => content !== null);
-    result.forEach(content => appendToHead(dom, [stylesheet(encode(content))]));
-    return result;
-  }).flat(); 
+  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent, loader.client)), flatten, uniq,reverse)(DOM.customElements(dom)); 
+  const contents = map(util.promisify(fs.readFile), sources);
+
+  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic, loader.client), sources).flat());
+  const otherContents = map(util.promisify(fs.readFile), otherSources);
+
+  const encodeFile = partialRight(encodeForFileName, [opts.salt]);
+
+  const raw = zipWith((content, src) => ({
+    alias: aliasFromSource(src), id: 'BelteComponent' + encodeFile(content), src}),
+    await Promise.all(contents), sources);
+  const otherRaw = zipWith((content, src) => ({
+    alias: aliasFromSource(src), id: 'BelteLogic' + encodeFile(content), src}),
+    await Promise.all(otherContents), otherSources);
+
+  const globals = reduce((acc, {alias, id}) => assoc(alias, id, acc), {}, [...raw, ...otherRaw]);
+
+  const compsFiles = map(({src, id}) => {
+    // todo fix this hack
+    fs.writeFileSync(src+'.updated', loader.client(fs.readFileSync(src)));
+    return compileChunk(src+'.updated', true, globals, id)
+  }, raw).flat();
+
+  const nonCompsFiles = map(({src, id}) => compileChunk(src, false, globals, id), otherRaw).flat();
+
+  const scriptsObj = map((content) => 
+    ({ name: 'BelteLogic.' + encodeFile(Buffer.from(content)), 
+      code: content.toString('utf8') }), 
+    await Promise.all(nonCompsFiles)).flat();
+
+  const componentsObj = map((content) => 
+    ({ name: `${loader.name}.${encodeFile(Buffer.from(content))}`, 
+      code: content.toString() }), 
+    await Promise.all(compsFiles)).flat()
+
+  // todo make this more concise and pull multiple construcotrs into the same script
+  const sourceMap = reduce((acc, {src, id}) => assoc(src, id, acc), {}, [...raw, ...otherRaw]);
+  const constructors = map((el) => assoc('name', sourceMap[resolveSrc[el.name]], el), DOM.customElements(dom));
+  const constructorsObj = map(({id, attr, name}) => ({
+    name: encodeFile(Buffer.from(loader.constructor(name, id, attr, globals))), 
+    code: loader.constructor(name, id, attr, globals)}), constructors);
+
+  const result = reduce((acc, {name, code}) => assoc(name, code, acc), {}, 
+    [...scriptsObj, ...componentsObj, ...constructorsObj]);
+
+  const rendered = DOM.replaceWith(dom, loader.render, resolveSrc);
+  const headUpdated = DOM.appendToHead(rendered, map(script, keys(result)))
+
+  // todo fix this hack
+  const tempClearup = map(({src}) => { 
+    fs.unlinkSync(src+'.updated'); 
+    return src+'.updated' }, raw).flat();
+  console.log(`removed ${tempClearup}`);
 
   return {
-    html: serialize(dom), 
-    css: css.map(content => ({name: encode(content), code: content})),
-    js: js.map(content => ({name: encode(content), code: content}))
-  };
+    html: DOM.serialize(headUpdated), 
+    css: [],
+    assets: [], // new api should use assets {type: css | js | img, filename: '', code: ''
+    js: result
+  }
 }
 
 export default compile;

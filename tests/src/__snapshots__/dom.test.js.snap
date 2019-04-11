@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`can replace custom element 1`] = `
+"<!DOCTYPE html><html><head><title></title></head><body>
+      <div id=\\"belte-component-0\\">
+        undefined
+      </div></body></html>"
+`;
+
+exports[`can replace custom element with attributes 1`] = `
+"<!DOCTYPE html><html><head><title></title></head><body>
+      <div id=\\"belte-component-0\\">
+        undefined-with-{\\"name\\":\\"jeff\\"}
+      </div></body></html>"
+`;
+
+exports[`can replace custom element with multiple attributes 1`] = `
+"<!DOCTYPE html><html><head><title></title></head><body>
+      <div id=\\"belte-component-0\\">
+        undefined-with-{\\"name\\":\\"jeff\\",\\"second\\":\\"mcgee\\"}
+      </div></body></html>"
+`;
+
+exports[`can replace custom element with multiple html attributes 1`] = `
+"<!DOCTYPE html><html><head><title></title></head><body>
+      <div id=\\"belte-component-0\\" class=\\"nonsense\\">
+        undefined-with-{\\"name\\":\\"jeff\\",\\"second\\":\\"mcgee\\"}
+      </div></body></html>"
+`;
+
+exports[`can replace custom multiple elements 1`] = `
+"<!DOCTYPE html><html><head><title></title></head><body>
+      <div id=\\"belte-component-0\\">
+        undefined
+      </div>
+      <div id=\\"belte-component-1\\">
+        undefined
+      </div></body></html>"
+`;
