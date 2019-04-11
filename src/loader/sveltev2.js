@@ -1,6 +1,7 @@
 const svelte = require('svelte');
 import * as R from 'ramda';
 import { readFileSync } from 'fs';
+import { nameFromPath } from '../string';
 import  pathUtil from 'path';
 import { walk } from 'estree-walker';
 const acorn = require('acorn');
@@ -11,19 +12,15 @@ export const render = (src, attr) => {
   return require(src).render(attr).html
 }
 
-export const client = (src, globals) => {
-  const comp = readFileSync(src, 'utf8');
-  const dir = pathUtil.dirname(src);
+export const client = (buffer) => {
+  const source = buffer.toString('utf8');
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: globals[src],
-    filename: src,
-		format: 'iife',
-    globals: (relPath) => globals[relPath]
+		format: 'es'
 	};
-	return svelte.compile(comp, options).js.code;
+	return svelte.compile(source, options).js.code;
 }
 
 export const style = (src) => {

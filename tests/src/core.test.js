@@ -27,7 +27,7 @@ test('gives a best guess for the alias of the source', () => {
   expect(result).toBe('alias/to/path.js');
 });
 
-test('can render a react component', async () => {
+test.skip('can render a react component', async () => {
   const comp = pathUtil.resolve(__dirname, '../resource/react/BelteSingular.jsx');
   const opts = {
     components: [comp],

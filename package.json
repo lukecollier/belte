@@ -1,6 +1,6 @@
 {
   "name": "belte",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "strap on your components",
   "main": "lib/index.cjs.js",
   "module": "lib/index.umd.js",
@@ -44,6 +44,7 @@
     "rollup-plugin-node-resolve": "^4.2.1",
     "rollup-plugin-strip-shebang": "^1.1.4",
     "rollup-plugin-sucrase": "^2.1.0",
+    "rollup-plugin-svelte": "^5.0.3",
     "sucrase": "^3.10.1",
     "svelte": "^2.16.1"
   },

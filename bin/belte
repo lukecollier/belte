@@ -9176,9 +9176,9 @@ var resolve_1 = resolve.sync;
  * component.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-const resolve$1 = (src, filter) => {
-	const sources = imports(src, filter);
-	const recurse = map(({ src }) => resolveAsList(src, filter), sources);
+const resolve$1 = (src, filter, transform = (_) => _) => {
+	const sources = imports(src, filter, transform);
+	const recurse = map(({ src }) => resolveAsList(src, filter, transform), sources);
   return prepend(src, map(({src})=>src, flatten(concat(sources, recurse))));
 };
 
@@ -9190,9 +9190,9 @@ const resolve$1 = (src, filter) => {
  * component.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-const resolveAsList = (src, filter) => {
-	const sources = imports(src, filter);
-	const recurse = map(({ src }) => resolveAsList(src, filter), sources);
+const resolveAsList = (src, filter, transform = (_) => _) => {
+	const sources = imports(src, filter, transform);
+	const recurse = map(({ src }) => resolveAsList(src, filter, transform), sources);
   return flatten(concat(sources, recurse));
 };
 
@@ -9202,8 +9202,8 @@ const resolveAsList = (src, filter) => {
  * @param {Function} filter - Filtering function.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-const imports = (src, filter) => {
-  const content = fs$1__default.readFileSync(src,'utf8');
+const imports = (src, filter, transform = (_) => _) => {
+  const content = transform(fs$1__default.readFileSync(src,'utf8'));
   const result = Parser.extend(acornJsx()).parse(content, {sourceType: "module"});
   var sources = [];
   walk(result, { enter: function (node, parent ) {
@@ -86980,6 +86980,10 @@ function aliasFromSource(src) {
   }
 }
 
+// 1. new plan is to also output an index bundle which ties everything together, allowing rollup to decide if we should chunk
+// 2. rollup can do the chunking more effectively this greatly simplifies things
+// 3. we can then compile them again into iife's with globals
+
 async function compileChunk(src, external, globals, name) {
   const inputOptions = {
     input: src,
@@ -87014,11 +87018,12 @@ const script = (src) => `<script defer="true" src="/${src}.js"></script>`;
 async function compile(html, opts = defaultOpts, loader) {
   const dom = parse$2(html);
   const resolveSrc = resolveSources$2(opts.components);
+  // todo only read files once as a buffer apply transforms then carry on
 
-  const sources = pipe(map((el) => resolve$1(resolveSrc[el.name], loader.isComponent)), flatten, uniq,reverse)(customElements(dom)); 
+  const sources = pipe(map((el) => resolve$1(resolveSrc[el.name], loader.isComponent, loader.client)), flatten, uniq,reverse)(customElements(dom)); 
   const contents = map(util$2$1.promisify(fs$1__default.readFile), sources);
 
-  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic), sources).flat());
+  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic, loader.client), sources).flat());
   const otherContents = map(util$2$1.promisify(fs$1__default.readFile), otherSources);
 
   const encodeFile = partialRight(encodeForFileName, [opts.salt]);
@@ -87032,16 +87037,22 @@ async function compile(html, opts = defaultOpts, loader) {
 
   const globals = reduce((acc, {alias, id}) => assoc(alias, id, acc), {}, [...raw, ...otherRaw]);
 
-  const compsFiles = map(({src, id}) => compileChunk(src, true, globals, id), raw).flat();
+  const compsFiles = map(({src, id}) => {
+    // todo fix this hack
+    fs$1__default.writeFileSync(src+'.updated', loader.client(fs$1__default.readFileSync(src)));
+    return compileChunk(src+'.updated', true, globals, id)
+  }, raw).flat();
+
   const nonCompsFiles = map(({src, id}) => compileChunk(src, false, globals, id), otherRaw).flat();
 
   const scriptsObj = map((content) => 
     ({ name: 'BelteLogic.' + encodeFile(Buffer.from(content)), 
       code: content.toString('utf8') }), 
     await Promise.all(nonCompsFiles)).flat();
+
   const componentsObj = map((content) => 
     ({ name: `${loader.name}.${encodeFile(Buffer.from(content))}`, 
-      code: loader.client(content,globals) }), 
+      code: content.toString() }), 
     await Promise.all(compsFiles)).flat();
 
   // todo make this more concise and pull multiple construcotrs into the same script
@@ -87056,6 +87067,13 @@ async function compile(html, opts = defaultOpts, loader) {
 
   const rendered = replaceWith(dom, loader.render, resolveSrc);
   const headUpdated = appendToHead(rendered, map(script, keys(result)));
+
+  // todo fix this hack
+  const tempClearup = map(({src}) => { 
+    fs$1__default.unlinkSync(src+'.updated'); 
+    return src+'.updated' }, raw).flat();
+  console.log(`removed ${tempClearup}`);
+
   return {
     html: serialize(headUpdated), 
     css: [],
@@ -94726,19 +94744,15 @@ const render$1 = (src, attr) => {
   return require(src).render(attr).html
 };
 
-const client$1 = (src, globals) => {
-  const comp = fs$1.readFileSync(src, 'utf8');
-  const dir = path$1__default.dirname(src);
+const client$1 = (buffer) => {
+  const source = buffer.toString('utf8');
 	const options = {
 		generate: 'dom',
 		css: false,	
 		hydratable: true,
-    name: globals[src],
-    filename: src,
-		format: 'iife',
-    globals: (relPath) => globals[relPath]
+		format: 'es'
 	};
-	return svelte.compile(comp, options).js.code;
+	return svelte.compile(source, options).js.code;
 };
 
 const style = (src) => {
@@ -94812,7 +94826,7 @@ async function compileIt (loader, data, opts, target) {
       const indexSrc = path$1__default.resolve(process.cwd(), index.name);
       write(indexSrc, result.html);
     }
-  });
+  }).catch(err=>exitWithError(err));
 }
 
 

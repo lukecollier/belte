@@ -49,7 +49,7 @@ async function compileIt (loader, data, opts, target) {
       const indexSrc = path.resolve(process.cwd(), index.name);
       write(indexSrc, result.html)
     }
-  });
+  }).catch(err=>exitWithError(err));
 }
 
 

@@ -15,9 +15,9 @@ import nodeResolve from 'resolve';
  * component.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-export const resolve = (src, filter) => {
-	const sources = imports(src, filter);
-	const recurse = map(({ src }) => resolveAsList(src, filter), sources);
+export const resolve = (src, filter, transform = (_) => _) => {
+	const sources = imports(src, filter, transform);
+	const recurse = map(({ src }) => resolveAsList(src, filter, transform), sources);
   return prepend(src, map(({src})=>src, flatten(concat(sources, recurse))));
 }
 
@@ -29,9 +29,9 @@ export const resolve = (src, filter) => {
  * component.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-export const resolveAsList = (src, filter) => {
-	const sources = imports(src, filter);
-	const recurse = map(({ src }) => resolveAsList(src, filter), sources);
+export const resolveAsList = (src, filter, transform = (_) => _) => {
+	const sources = imports(src, filter, transform);
+	const recurse = map(({ src }) => resolveAsList(src, filter, transform), sources);
   return flatten(concat(sources, recurse));
 }
 
@@ -41,8 +41,8 @@ export const resolveAsList = (src, filter) => {
  * @param {Function} filter - Filtering function.
  * @returns {(string|Array)} - A list of dependent client scripts in call order.
  */
-export const imports = (src, filter) => {
-  const content = fs.readFileSync(src,'utf8');
+export const imports = (src, filter, transform = (_) => _) => {
+  const content = transform(fs.readFileSync(src,'utf8'));
   const result = acorn.Parser.extend(jsx()).parse(content, {sourceType: "module"});
   var sources = [];
   walk(result, { enter: function (node, parent ) {

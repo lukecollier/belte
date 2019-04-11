@@ -47,12 +47,12 @@ output.js contains example of svelte compiled greeting
 ## Roadmap
 ### 1.0 Stablilizing Api
 completing the core working well with needed features 
-- [ ] -can get import and resolve node modules code- (should be handled by build tool)
+- [x] -can get import and resolve node modules code- (should be handled by build tool)
 - [ ] support multiple frameworks
-- [ ] only update changed components using their names for caching
+- [ ] only update changed components using their names for caching during compilation
 - [ ] decrease chance of collision using new hashing function encoding for filenames
 - [ ] parse attributes as numbers and objects not just as strings
-- [ ] debug options, e.g adding component names before hash versioning
+- [ ] debug options, e.g adding component names before hash versioning and source maps
 - [ ] report errors and warning effectively
 - [ ] test kit for loading components
 - [ ] support self closing tags e.g ```html <thing/>```
@@ -61,13 +61,12 @@ completing the core working well with needed features
 - [x] include cli
 - [ ] quickstart
 - [ ] write guide
-- [ ] sourcemaps and other dev goodies 
-- [ ] optimize
+- [ ] optimize for under 5 seconds per template
 - [ ] slot elements
 - [ ] pass state through component trees
 - [ ] syntax for generating states
 - [x] make loaders dumb (loaders should expose simple functions for compiling component js, html, css and initializers)
-- [ ] resolve dependencies in core as apposed to in the loader
+- [x] resolve dependencies in core as apposed to in the loader
 
 ### Future Work
 Vague ideas for nice-to-haves.
@@ -99,14 +98,12 @@ loaders require these to function as intended
 - [ ] (optional) Extract styles to sheet 
 - [ ] (optional) A way to reference header values 
 
-Loaders work with 3 components,
-- Head, resolves everything that goes into the head
-- Inline, replaced in line where custom elements are found
-- end, loaded at the end of the java file
+loaders simply resolve a component to it's esm standard and insert it into a template.
 
 | framework  | repo |
 | ------------- | ------------- |
 | [svelte v2](https://svelte.technology/)  | this repo |
+| [react v16.8.6](https://reactjs.org/)  | this repo |
 
 #### Testing your loader
 for your loader to be accepted you'll need to use the test suite to ensure compliance with custom-elements.

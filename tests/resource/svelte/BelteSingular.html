@@ -1,0 +1,23 @@
+<script>
+	export default {
+		data() {
+			return {
+				seconds: 0
+			};	
+    },
+    oncreate() {
+			this.interval = setInterval(() => {
+        const { seconds } = this.get();
+				this.set({ seconds: seconds + 1 });
+			}, 1000);
+		},
+    ondestroy() {
+			clearInterval(this.interval);
+		}
+	};
+</script>
+
+<div>
+  Seconds: {seconds}
+</div>
+

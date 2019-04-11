@@ -2,11 +2,12 @@ import { resolve, imports, resolveAsList } from '../../src/dependency';
 import pathUtil from 'path';
 
 const getResource = (path) => pathUtil.resolve(__dirname, '../resource/'+path);
+const root = pathUtil.resolve(__dirname, '../../');
 
 test('can resolve a file with one dependency', () => {
   const result = resolveAsList(getResource('react/ComponentTwo.jsx'), (_) => true);
 	expect(result).toEqual([
-		{"alias": "react", "src": "/Users/collierl/Project/Tinker/belte/node_modules/react/index.js"}, 
+		{"alias": "react", "src": root+"/node_modules/react/index.js"}, 
 		{"alias": "./Component.jsx", "src": "/Users/collierl/Project/Tinker/belte/tests/resource/react/Component.jsx"}, 
 		{"alias": "react", "src": "/Users/collierl/Project/Tinker/belte/node_modules/react/index.js"}
 	]);
@@ -30,4 +31,9 @@ test('gathers the imports from a file', () => {
 		{"alias": "./Component.jsx", 
       "src": "/Users/collierl/Project/Tinker/belte/tests/resource/react/Component.jsx"}, 
 	]);
+});
+
+test('can add a transformer', () => {
+  const result = imports(getResource('svelte/BelteSingular.html'), (_) => true, (_) => `import pathUtil from 'path';`);
+	expect(result).toEqual([{alias:"path", src:"path"}]);
 });

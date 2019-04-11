@@ -31,6 +31,10 @@ export function aliasFromSource(src) {
   }
 }
 
+// 1. new plan is to also output an index bundle which ties everything together, allowing rollup to decide if we should chunk
+// 2. rollup can do the chunking more effectively this greatly simplifies things
+// 3. we can then compile them again into iife's with globals
+
 export async function compileChunk(src, external, globals, name) {
   const inputOptions = {
     input: src,
@@ -67,11 +71,12 @@ const script = (src) => `<script defer="true" src="/${src}.js"></script>`
 export async function compile(html, opts = defaultOpts, loader) {
   const dom = DOM.parse(html);
   const resolveSrc = resolveSources(opts.components)
+  // todo only read files once as a buffer apply transforms then carry on
 
-  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent)), flatten, uniq,reverse)(DOM.customElements(dom)); 
+  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent, loader.client)), flatten, uniq,reverse)(DOM.customElements(dom)); 
   const contents = map(util.promisify(fs.readFile), sources);
 
-  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic), sources).flat());
+  const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic, loader.client), sources).flat());
   const otherContents = map(util.promisify(fs.readFile), otherSources);
 
   const encodeFile = partialRight(encodeForFileName, [opts.salt]);
@@ -85,16 +90,22 @@ export async function compile(html, opts = defaultOpts, loader) {
 
   const globals = reduce((acc, {alias, id}) => assoc(alias, id, acc), {}, [...raw, ...otherRaw]);
 
-  const compsFiles = map(({src, id}) => compileChunk(src, true, globals, id), raw).flat();
+  const compsFiles = map(({src, id}) => {
+    // todo fix this hack
+    fs.writeFileSync(src+'.updated', loader.client(fs.readFileSync(src)));
+    return compileChunk(src+'.updated', true, globals, id)
+  }, raw).flat();
+
   const nonCompsFiles = map(({src, id}) => compileChunk(src, false, globals, id), otherRaw).flat();
 
   const scriptsObj = map((content) => 
     ({ name: 'BelteLogic.' + encodeFile(Buffer.from(content)), 
       code: content.toString('utf8') }), 
     await Promise.all(nonCompsFiles)).flat();
+
   const componentsObj = map((content) => 
     ({ name: `${loader.name}.${encodeFile(Buffer.from(content))}`, 
-      code: loader.client(content,globals) }), 
+      code: content.toString() }), 
     await Promise.all(compsFiles)).flat()
 
   // todo make this more concise and pull multiple construcotrs into the same script
@@ -109,6 +120,13 @@ export async function compile(html, opts = defaultOpts, loader) {
 
   const rendered = DOM.replaceWith(dom, loader.render, resolveSrc);
   const headUpdated = DOM.appendToHead(rendered, map(script, keys(result)))
+
+  // todo fix this hack
+  const tempClearup = map(({src}) => { 
+    fs.unlinkSync(src+'.updated'); 
+    return src+'.updated' }, raw).flat();
+  console.log(`removed ${tempClearup}`);
+
   return {
     html: DOM.serialize(headUpdated), 
     css: [],
