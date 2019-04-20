@@ -12,7 +12,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "node --max-old-space-size=8192 node_modules/rollup/bin/rollup -c rollup.config.js",
+    "build": "rollup -c rollup.config.js",
     "test": "jest",
     "test:watch": "jest -w"
   },
@@ -43,7 +43,8 @@
     "rollup-plugin-sucrase": "^2.1.0",
     "rollup-plugin-svelte": "^5.0.3",
     "sucrase": "^3.10.1",
-    "svelte": "^2.16.1"
+    "svelte": "^2.16.1",
+    "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
     "@sucrase/jest-plugin": "^2.0.0",

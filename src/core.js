@@ -73,7 +73,7 @@ export async function compile(html, opts = defaultOpts, loader) {
   const resolveSrc = resolveSources(opts.components)
   // todo only read files once as a buffer apply transforms then carry on
 
-  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent, loader.client)), flatten, uniq,reverse)(DOM.customElements(dom)); 
+  const sources = pipe(map((el) => resolve(resolveSrc[el.name], loader.isComponent, loader.client)), flatten,reverse, uniq)(DOM.customElements(dom)); 
   const contents = map(util.promisify(fs.readFile), sources);
 
   const otherSources = map(({src})=>src, map((src) => imports(src, loader.isLogic, loader.client), sources).flat());
@@ -108,6 +108,10 @@ export async function compile(html, opts = defaultOpts, loader) {
       code: content.toString() }), 
     await Promise.all(compsFiles)).flat()
 
+  const styleObj = map((content) => 
+    ({ name: `${loader.name}.${encodeFile(Buffer.from(content))}`, 
+      code: loader.style(content) }), await Promise.all(contents)).flat()
+
   // todo make this more concise and pull multiple construcotrs into the same script
   const sourceMap = reduce((acc, {src, id}) => assoc(src, id, acc), {}, [...raw, ...otherRaw]);
   const constructors = map((el) => assoc('name', sourceMap[resolveSrc[el.name]], el), DOM.customElements(dom));
@@ -118,8 +122,11 @@ export async function compile(html, opts = defaultOpts, loader) {
   const result = reduce((acc, {name, code}) => assoc(name, code, acc), {}, 
     [...scriptsObj, ...componentsObj, ...constructorsObj]);
 
+  console.log(result);
+
   const rendered = DOM.replaceWith(dom, loader.render, resolveSrc);
   const headUpdated = DOM.appendToHead(rendered, map(script, keys(result)))
+  const cssHeadUpdate = DOM.appendToHead(headUpdated, map(stylesheet, map(({name})=>name, styleObj)))
 
   // todo fix this hack
   const tempClearup = map(({src}) => { 
@@ -128,8 +135,8 @@ export async function compile(html, opts = defaultOpts, loader) {
   console.log(`removed ${tempClearup}`);
 
   return {
-    html: DOM.serialize(headUpdated), 
-    css: [],
+    html: DOM.serialize(cssHeadUpdate), 
+    css: styleObj,
     assets: [], // new api should use assets {type: css | js | img, filename: '', code: ''
     js: result
   }

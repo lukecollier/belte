@@ -24,6 +24,7 @@ export const constructor = (name, id, attr, libraries) =>
     document.getElementById("${id}")
   );`; // need to find a way to compile this with global exports... this will allow the `import ReactDOM from "react-dom"` or `import React from "react"`
 
+export const style = (_) => []
 
 export const client = (buffer) => {
   return buffer.toString('utf8'); 

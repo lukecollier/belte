@@ -1,7 +1,7 @@
 import { compile } from './core.js' 
 import path from 'path';
 import {readFileSync, accessSync, constants, mkdirSync, writeFile} from 'fs';
-import { forEachObjIndexed } from 'ramda';
+import { forEachObjIndexed, forEach } from 'ramda';
 
 // our basic loaders for svelte 2 and react
 import * as react from './loader/react.js'; 
@@ -39,6 +39,7 @@ async function compileIt (loader, data, opts, target) {
   const compiled = (loader.err) ? 
     compile(data, opts, react) : compile(data, opts, getLoader(loader.name))
   compiled.then(result => {
+    forEach(({code, name}) => write(`${target}/${name}.css`, code), result.css);
     forEachObjIndexed((code, key)=>{
       write(`${target}/${key}.js`, code);
     }, result.js);

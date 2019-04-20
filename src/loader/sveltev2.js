@@ -23,14 +23,14 @@ export const client = (buffer) => {
 	return svelte.compile(source, options).js.code;
 }
 
-export const style = (src) => {
-  const data = readFileSync(src, 'utf8');
+export const style = (buffer) => {
+  const source = buffer.toString('utf8');
 	const options = {
 		generate: 'dom',
 		css: true,	
 		format: 'cjs'
 	};
-	return svelte.compile(data, options).css.code;
+	return svelte.compile(source, options).css.code;
 }
 
 export const constructor = (name, id, attr) => 
