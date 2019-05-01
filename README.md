@@ -1,3 +1,8 @@
+# Discontinued Notice
+Belte began life as a proof of concept to convince co-workers to move to a more compiled approach to a problem. However it's a fundamentally poor idea, I'd fully recommend [svete](https://github.com/sveltejs/svelte) if your goals align with this projects and use the ssr at build time!
+
+Cheers
+
 # belte [/belt-ah/](https://dictionary.cambridge.org/pronunciation/english/belt)
 strap your svelte components onto plain old html
 
